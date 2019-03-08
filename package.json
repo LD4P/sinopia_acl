@@ -4,7 +4,7 @@
   "description": "Interact with WebACL data on Sinopia server",
   "main": "commands.js",
   "scripts": {
-    "eslint": "eslint --color -c .eslintrc.js ./src",
+    "eslint": "eslint --color -c .eslintrc.js src __tests__",
     "jest-cov": "jest --colors --runInBand --coverage",
     "jest-ci": "jest --colors --ci --runInBand --coverage",
     "test": "jest --colors --runInBand"
