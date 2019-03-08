@@ -1,0 +1,60 @@
+# Copyright 2019 Stanford University see LICENSE file
+# CircleCI 2.0 configuration file
+
+defaults: &defaults
+  docker:
+    - image: circleci/node:10.15.2
+  working_directory: ~/sinopia_acl
+
+
+version: 2
+jobs:
+  dependencies:
+    <<: *defaults
+    steps:
+      - run:
+          name: update-npm
+          command: 'sudo npm install -g npm@5'
+      - checkout
+      - restore_cache:
+          key: dependency-cache-prod-{{ checksum "package.json" }}
+      - run: npm install --only=production
+      - save_cache:
+          key: dependency-cache-prod-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - restore_cache:
+          key: dependency-cache-ci-{{ checksum "package.json" }}
+      - run: npm install # including CI/Test dependencies
+      - save_cache:
+          key: dependency-cache-ci-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+  build:
+    <<: *defaults
+    environment:
+      CC_TEST_REPORTER_ID: df07c492e87437bdb4127915ce554fd0b601e9111d66119ebfaa73eba57d5cf4
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-ci-{{ checksum "package.json" }}
+      - run: npm run eslint
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
+          name: test with jest
+          command: npm run jest-ci
+          environment:
+            JEST_JUNIT_OUTPUT: "test-results/jest/jest-results.xml"
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - dependencies
+      - build:
+          requires:
+            - dependencies
