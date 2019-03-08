@@ -32,8 +32,6 @@ jobs:
             - node_modules
   build:
     <<: *defaults
-    environment:
-      CC_TEST_REPORTER_ID: df07c492e87437bdb4127915ce554fd0b601e9111d66119ebfaa73eba57d5cf4
     steps:
       - checkout
       - restore_cache:
@@ -46,9 +44,10 @@ jobs:
             chmod +x ./cc-test-reporter
       - run:
           name: test with jest
-          command: npm run jest-ci
-          environment:
-            JEST_JUNIT_OUTPUT: "test-results/jest/jest-results.xml"
+          command: |
+            ./cc-test-reporter before-build
+            npm run jest-ci
+            ./cc-test-reporter after-build --exit-code $?
 
 workflows:
   version: 2
