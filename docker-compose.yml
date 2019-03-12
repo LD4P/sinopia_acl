@@ -1,0 +1,49 @@
+version: "3"
+services:
+  broker:
+    image: rmohr/activemq
+    ports:
+      - 61616:61616
+      - 61613:61613
+      - 8161:8161
+  platform:
+    image: ld4p/trellis-ext-db:latest
+    environment:
+      TRELLIS_BASE_URL: http://platform:8080
+      TRELLIS_LOGGING_LEVEL: INFO
+      TRELLIS_CONSOLE_LOGGING_THRESHOLD: INFO
+    ports:
+      - 8080:8080
+      - 8081:8081
+    depends_on:
+      - database
+      # - broker # seemingly not needed but the broker service is needed
+      - migration
+  acl:
+    build:
+      context: .
+    command: dockerize -timeout 3m npm start
+    depends_on:
+      - platform
+  # integration:
+  #   build:
+  #     context: .
+  #   environment:
+  #     INSIDE_CONTAINER: 'true'
+  #   command: dockerize -wait tcp://platform:8080 -timeout 3m npm run integration
+  #   depends_on:
+  #     - acl
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: sinopia
+      POSTGRES_DB: sinopia
+      POSTGRES_PASSWORD: S1n0p1a
+      PGDATA: /var/lib/postgresql/data/pgdata/mydata
+    ports:
+      - 5432:5432
+  migration:
+    image: ld4p/trellis-ext-db:latest
+    command: ["/opt/trellis/bin/trellis-db", "db", "migrate", "/opt/trellis/etc/config.yml"]
+    depends_on:
+      - database
