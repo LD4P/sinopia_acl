@@ -10,11 +10,26 @@ WebACL (https://www.w3.org/wiki/WebAccessControl) is how we will gate access to 
 The "copy of record" of group/webID mappings will be in the Sinopia server.
 
 
+## Testing
+
+Using `docker-compose`, you can spin up a container with Trellis(, Postgres, ActiveMQ and this repo's code):
+
+```shell
+$ docker-compose up
+```
+
+To shut it down and clean up, run:
+
+```shell
+$ docker-compose down
+```
+
 ## Command Line
 
 This code will have a simple CLI for Sinopia Server admins to use
 
 It will expect the admin user to have a JWT in an .ENV file (to allow server to know the admin user has permisssions to make the changes to WebACL data).
+
 
 
 ## Development Principles:
