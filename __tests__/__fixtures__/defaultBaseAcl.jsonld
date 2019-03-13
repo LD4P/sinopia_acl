@@ -1,0 +1,39 @@
+{
+  "@id": "http://trellis.development.sinopia.io:8080/#auth",
+  "accessTo": "http://trellis.development.sinopia.io:8080/",
+  "agentClass": "http://xmlns.com/foaf/0.1/Agent",
+  "mode": [
+    "acl:Read",
+    "acl:Write",
+    "acl:Control"
+  ],
+  "@context": {
+    "mode": {
+      "@id": "http://www.w3.org/ns/auth/acl#mode",
+      "@type": "@id"
+    },
+    "agentClass": {
+      "@id": "http://www.w3.org/ns/auth/acl#agentClass",
+      "@type": "@id"
+    },
+    "accessTo": {
+      "@id": "http://www.w3.org/ns/auth/acl#accessTo",
+      "@type": "@id"
+    },
+    "schema": "http://schema.org/",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "memento": "http://mementoweb.org/ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "acl": "http://www.w3.org/ns/auth/acl#",
+    "geo": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    "dc11": "http://purl.org/dc/elements/1.1/",
+    "as": "https://www.w3.org/ns/activitystreams#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "ldp": "http://www.w3.org/ns/ldp#",
+    "time": "http://www.w3.org/2006/time#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dc": "http://purl.org/dc/terms/"
+  }
+}
