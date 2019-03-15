@@ -9,6 +9,9 @@
     "jest-ci": "jest --colors --ci --runInBand --coverage",
     "test": "jest --colors --runInBand"
   },
+  "engines": {
+    "node": "10.11.x"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/LD4P/sinopia_acl.git"
