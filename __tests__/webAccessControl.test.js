@@ -1,11 +1,5 @@
 import { WebAccessControl } from '../src/webAccessControl'
-const N3 = require('n3')
-const { DataFactory } = N3
-const { namedNode } = DataFactory
-// const { namedNode, literal, defaultGraph, quad } = DataFactory
-
 const fs = require('fs')
-
 
 describe('WebAccessControl', () => {
   const myWac = new WebAccessControl()

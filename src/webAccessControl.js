@@ -13,10 +13,10 @@ const { namedNode } = DataFactory
 
 export class WebAccessControl {
 
-  constructor(wacData) {
+  constructor(wacData=null) {
     this.n3store = N3.Store()
     if (wacData != null && wacData.length > 5)
-      parseWac(wacData)
+      this.parseWac(wacData)
   }
 
   // listUsers() {
