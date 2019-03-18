@@ -15,20 +15,20 @@ export class WebAccessControl {
 
   constructor(wacData=null) {
     this.n3store = N3.Store()
+    this.userNodeArray = []
     if (wacData != null && wacData.length > 5)
       this.parseWac(wacData)
   }
 
-  // listUsers() {
-  //
-  // }
+  // expect parseWac to have been called on desired WAC
+  listUsers() {
+    return this.userNodeArray.map(element => element.value)
+  }
 
   // expect userid to be a string
+  // expect parseWac to have been called on desired WAC
   hasUser(userid) {
-    // TODO: memoize userNodeArray for instance?
-    const userNodeArray = this.n3store.getObjects(null, namedNode('http://www.w3.org/ns/auth/acl#agent'), null)
-
-    return userNodeArray.map(element => element.value).includes(userid)
+    return this.listUsers().includes(userid)
   }
 
   // userCanWrite(userid) {
@@ -41,5 +41,7 @@ export class WebAccessControl {
     this.n3store = N3.Store()
     if (wacData)
       this.n3store.addQuads(parser.parse(wacData))
+    this.userNodeArray = this.n3store.getObjects(null, namedNode('http://www.w3.org/ns/auth/acl#agent'), null)
   }
+
 }
