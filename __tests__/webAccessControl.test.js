@@ -19,6 +19,12 @@ describe('WebAccessControl', () => {
     })
   })
 
+  it('no need to call parseWac when wac string passed in constructor', () => {
+    const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
+    expect(wac.hasUser('http://sinopia.io/users/cmharlow')).toBeTruthy()
+    expect(myWac.hasUser('http://example.com/nobody')).toBeFalsy()
+  })
+
   describe('ttl fixture', () => {
     beforeAll(() => {
       myWac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
