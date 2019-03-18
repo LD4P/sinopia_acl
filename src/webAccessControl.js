@@ -27,16 +27,11 @@ export class WebAccessControl {
   hasUser(userid) {
     // TODO: memoize userNodeArray for instance?
     const userNodeArray = this.n3store.getObjects(null, namedNode('http://www.w3.org/ns/auth/acl#agent'), null)
-    if (userNodeArray == undefined || userNodeArray.size == 0)
+
+    if (userNodeArray == undefined)
       return false
 
-    var matchingNode = userNodeArray.find((element) => {
-      return element.value === userid
-    })
-    if (matchingNode)
-      return true
-    else
-      return false
+    return userNodeArray.map(element => element.value).includes(userid)
   }
 
   // userCanWrite(userid) {

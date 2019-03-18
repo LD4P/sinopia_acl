@@ -1,5 +1,5 @@
 import { WebAccessControl } from '../src/webAccessControl'
-const fs = require('fs')
+import fs from 'fs'
 
 describe('WebAccessControl', () => {
   const myWac = new WebAccessControl()
