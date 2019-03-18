@@ -28,9 +28,6 @@ export class WebAccessControl {
     // TODO: memoize userNodeArray for instance?
     const userNodeArray = this.n3store.getObjects(null, namedNode('http://www.w3.org/ns/auth/acl#agent'), null)
 
-    if (userNodeArray == undefined)
-      return false
-
     return userNodeArray.map(element => element.value).includes(userid)
   }
 
