@@ -19,6 +19,12 @@ describe('WebAccessControl', () => {
     })
   })
 
+  it('no need to call parseWac when wac string passed in constructor', () => {
+    const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
+    expect(wac.hasUser('http://sinopia.io/users/cmharlow')).toBeTruthy()
+    expect(myWac.hasUser('http://example.com/nobody')).toBeFalsy()
+  })
+
   describe('ttl fixture', () => {
     beforeAll(() => {
       myWac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
@@ -47,6 +53,33 @@ describe('WebAccessControl', () => {
         expect(wac.hasUser('http://example.com/nobody')).toBeFalsy()
       })
     })
+
+    describe('listUsers()', () => {
+      it('lists the webids of the users', () => {
+        myWac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
+        expect(myWac.listUsers()).toEqual(['http://sinopia.io/users/cmharlow'])
+
+        myWac.parseWac(fs.readFileSync(`${fixture_dir}/stanfordGroupAcl_2Users.ttl`).toString())
+        expect(myWac.listUsers()).toContain('http://sinopia.io/users/cmharlow')
+        expect(myWac.listUsers()).toContain('http://sinopia.io/users/suntzu')
+      })
+
+      it('empty array when the wac has no users (does not error)', () => {
+        const wac = new WebAccessControl()
+        wac.parseWac(fs.readFileSync(`${fixture_dir}/defaultBaseAcl.ttl`).toString())
+        expect(wac.listUsers()).toEqual([])
+      })
+      it('empty array when the wac is an empty string', () => {
+        const wac = new WebAccessControl()
+        wac.parseWac('')
+        expect(wac.listUsers()).toEqual([])
+      })
+      it('empty array when no wac is parsed', () => {
+        const wac = new WebAccessControl()
+        expect(wac.listUsers()).toEqual([])
+      })
+    })
+
 
   })
 

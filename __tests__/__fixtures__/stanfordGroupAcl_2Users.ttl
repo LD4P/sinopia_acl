@@ -1,0 +1,14 @@
+@prefix acl:  <http://www.w3.org/ns/auth/acl#> .
+
+<http://platform:8080/#stanford-edit>
+        acl:mode      acl:Read ;
+        acl:mode      acl:Write ;
+        acl:mode      acl:Control ;
+        acl:agent     <http://sinopia.io/users/suntzu> ;
+        acl:agent     <http://sinopia.io/users/cmharlow> ;
+        acl:accessTo  <http://platform:8080/stanford> .
+
+<http://platform:8080/#stanford-read>
+        acl:mode        acl:Read ;
+        acl:agentClass  <http://xmlns.com/foaf/0.1/Agent> ;
+        acl:accessTo    <http://platform:8080/stanford> .
