@@ -79,4 +79,40 @@ describe('WebAccessControl', () => {
     })
   })
 
+  describe('validates()', () => {
+    it('throws error when there is no acl:accessTo predicate', () => {
+      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/noAccessToPredicate.ttl`).toString())
+      expect(() => {
+        wac.validates()
+      }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#accessTo predicate')
+    })
+    it('throws error when there is no acl:agentClass predicate', () => {
+      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/noAgentClassPredicate.ttl`).toString())
+      expect(() => {
+        wac.validates()
+      }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#agentClass predicate')
+    })
+    it('throws error when there is no acl:mode acl:Read predicate-object pair', () => {
+      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/noAclReadIncluded.ttl`).toString())
+      expect(() => {
+        wac.validates()
+      }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#Read permissions')
+    })
+    it('throws error when a group has no acl:agent predicate', () => {
+      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/noGroupUsers.ttl`).toString())
+      expect(() => {
+        wac.validates()
+      }).toThrow('invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids')
+    })
+    it('returns true when this.n3store root container contents pass validates', () => {
+      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/defaultBaseAcl.ttl`).toString())
+      expect(wac.validates()).toBeTruthy()
+      wac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
+      expect(wac.validates()).toBeTruthy()
+    })
+    it('returns true when this.n3store group container contents pass validates', () => {
+      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/stanfordGroupAcl_2Users.ttl`).toString())
+      expect(wac.validates()).toBeTruthy()
+    })
+  })
 })
