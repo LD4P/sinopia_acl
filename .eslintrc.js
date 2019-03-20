@@ -23,8 +23,8 @@ module.exports = {
   },
   overrides: [
     {
-      "files": ["src/*.js",
-                "__tests__/*.js"],
+      "files": ["src/**/*.js",
+                "__tests__/**/*.js"],
       "rules": {
         // See https://github.com/mysticatea/eslint-plugin-node/blob/master/docs/rules/no-unsupported-features/es-syntax.md
         //   rule supposedly matches ECMA version with node
@@ -32,6 +32,15 @@ module.exports = {
         "node/no-unsupported-features/es-syntax": "off",
         // Avoiding: "warning  Found fs.readFileSync with non literal argument ..."
         "security/detect-non-literal-fs-filename": "off"
+      }
+    },
+    {
+      files: [
+        'src/cli/*.js'
+      ],
+      rules: {
+        'no-console': 'off',
+        'no-process-exit': 'off'
       }
     }
   ]
