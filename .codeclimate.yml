@@ -42,6 +42,8 @@ checks:
 plugins:
   eslint:
     enabled: true
+    config:
+      config: .eslintrc.js
     channel: "eslint-5"
   duplication:
     enabled: true

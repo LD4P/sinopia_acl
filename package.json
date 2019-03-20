@@ -2,12 +2,15 @@
   "name": "sinopia_acl",
   "version": "0.0.1",
   "description": "Interact with WebACL data on Sinopia server",
-  "main": "commands.js",
+  "bin": {
+    "acl": "bin/acl"
+  },
   "scripts": {
-    "eslint": "eslint --color -c .eslintrc.js src __tests__",
-    "jest-cov": "jest --colors --runInBand --coverage",
-    "jest-ci": "jest --colors --ci --runInBand --coverage",
-    "test": "jest --colors --runInBand"
+    "eslint": "eslint --color -c .eslintrc.js --ext js .",
+    "jest-cov": "jest --colors --coverage",
+    "jest-ci": "jest --colors --ci --coverage",
+    "jest-integration": "jest --colors --testRegex=\\.integration\\.js$",
+    "test": "jest --colors"
   },
   "engines": {
     "node": "10.11.x"
@@ -17,6 +20,12 @@
     "url": "git+https://github.com/LD4P/sinopia_acl.git"
   },
   "author": "Naomi Dushay",
+  "contributors": [
+    {
+      "name": "Michael J. Giarlo",
+      "email": "leftwing@alumni.rutgers.edu"
+    }
+  ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/LD4P/sinopia_acl/issues"
@@ -25,6 +34,7 @@
   "devDependencies": {
     "@babel/core": "^7.3.4",
     "@babel/node": "^7.2.2",
+    "@babel/plugin-transform-runtime": "^7.4.0",
     "@babel/preset-env": "^7.3.4",
     "eslint": "^5.15.1",
     "eslint-plugin-import": "^2.16.0",
@@ -35,6 +45,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.3.4",
+    "commander": "^2.19.0",
     "n3": "^1.0.4"
   }
 }
