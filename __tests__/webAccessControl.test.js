@@ -1,5 +1,8 @@
 import { WebAccessControl } from '../src/webAccessControl'
 import fs from 'fs'
+import N3 from 'n3'
+const { DataFactory } = N3
+const { namedNode } = DataFactory
 
 describe('WebAccessControl', () => {
   const myWac = new WebAccessControl()
@@ -20,7 +23,7 @@ describe('WebAccessControl', () => {
   })
 
   it('no need to call parseWac when wac string passed in constructor', () => {
-    const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
+    const wac = new WebAccessControl('', fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
     expect(wac.hasUser('http://sinopia.io/users/cmharlow')).toBeTruthy()
     expect(myWac.hasUser('http://example.com/nobody')).toBeFalsy()
   })
@@ -81,38 +84,86 @@ describe('WebAccessControl', () => {
 
   describe('validates()', () => {
     it('throws error when there is no acl:accessTo predicate', () => {
-      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/noAccessToPredicate.ttl`).toString())
+      const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/noAccessToPredicate.ttl`).toString())
       expect(() => {
         wac.validates()
       }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#accessTo predicate')
     })
     it('throws error when there is no acl:agentClass predicate', () => {
-      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/noAgentClassPredicate.ttl`).toString())
+      const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/noAgentClassPredicate.ttl`).toString())
       expect(() => {
         wac.validates()
       }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#agentClass predicate')
     })
     it('throws error when there is no acl:mode acl:Read predicate-object pair', () => {
-      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/noAclReadIncluded.ttl`).toString())
+      const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/noAclReadIncluded.ttl`).toString())
       expect(() => {
         wac.validates()
       }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#Read permissions')
     })
     it('throws error when a group has no acl:agent predicate', () => {
-      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/noGroupUsers.ttl`).toString())
+      const wac = new WebAccessControl('stanford', fs.readFileSync(`${fixture_dir}/noGroupUsers.ttl`).toString())
       expect(() => {
         wac.validates()
       }).toThrow('invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids')
     })
-    it('returns true when this.n3store root container contents pass validates', () => {
-      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/defaultBaseAcl.ttl`).toString())
+    it('throws error when group in constructor does not match object of acl:accessTo predicate', () => {
+      const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/stanfordGroupAcl_2Users.ttl`).toString())
+      expect(() => {
+        wac.validates()
+      }).toThrow('invalid WAC: acl:accessTo expected group "myGroup"; found "stanford"')
+    })
+    it('returns true when this.n3store root container contents pass validation', () => {
+      const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/defaultBaseAcl.ttl`).toString())
       expect(wac.validates()).toBeTruthy()
       wac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
       expect(wac.validates()).toBeTruthy()
     })
-    it('returns true when this.n3store group container contents pass validates', () => {
-      const wac = new WebAccessControl(fs.readFileSync(`${fixture_dir}/stanfordGroupAcl_2Users.ttl`).toString())
+    it('returns true when this.n3store group container contents pass validation', () => {
+      const wac = new WebAccessControl('stanford', fs.readFileSync(`${fixture_dir}/stanfordGroupAcl_2Users.ttl`).toString())
       expect(wac.validates()).toBeTruthy()
+    })
+  })
+
+  describe('asTtl()', () => {
+    it('writes console error when this.n3store does not pass validation', () => {
+      const spy = jest.spyOn(global.console, 'error')
+      const wac = new WebAccessControl('stanford', fs.readFileSync(`${fixture_dir}/noGroupUsers.ttl`).toString())
+      wac.asTtl()
+      const origMsg = 'invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids'
+      const expMsg = `Unable to create WebAccessControl ttl to send to Sinopia server due to ${origMsg}`
+      expect(spy).toHaveBeenCalledWith(expMsg)
+    })
+    it('returns a string containing ttl matching contents of this.n3store', () => {
+      const wac = new WebAccessControl('stanford', fs.readFileSync(`${fixture_dir}/stanfordGroupAcl_2Users.ttl`).toString())
+      const outputTtlFile = wac.asTtl()
+      const myStore = N3.Store()
+      myStore.addQuads(N3.Parser().parse(outputTtlFile))
+
+      expect(myStore.countQuads()).toEqual(wac.n3store.countQuads())
+      expect(myStore.countQuads()).toBe(9)
+
+      const stanfordGroupNamedNode = namedNode('http://platform:8080/stanford')
+      const stanfordEditNamedNode = namedNode('http://platform:8080/#stanford-edit')
+      const stanfordReadNamedNode = namedNode('http://platform:8080/#stanford-read')
+      const aclModeNamedNode = namedNode('http://www.w3.org/ns/auth/acl#mode')
+      const aclReadNamedNode = namedNode('http://www.w3.org/ns/auth/acl#Read')
+      const aclWriteNamedNode = namedNode('http://www.w3.org/ns/auth/acl#Write')
+      const aclControlNamedNode = namedNode('http://www.w3.org/ns/auth/acl#Control')
+      const aclAgentNamedNode = namedNode('http://www.w3.org/ns/auth/acl#agent')
+      const aclAccessToNamedNode = namedNode('http://www.w3.org/ns/auth/acl#accessTo')
+      const aclAgentClassNamedNode = namedNode('http://www.w3.org/ns/auth/acl#agentClass')
+
+      expect(myStore.countQuads(stanfordEditNamedNode, aclModeNamedNode, aclReadNamedNode)).toBe(1)
+      expect(myStore.countQuads(stanfordEditNamedNode, aclModeNamedNode, aclWriteNamedNode)).toBe(1)
+      expect(myStore.countQuads(stanfordEditNamedNode, aclModeNamedNode, aclControlNamedNode)).toBe(1)
+      expect(myStore.countQuads(stanfordEditNamedNode, aclAgentNamedNode, namedNode('http://sinopia.io/users/suntzu'))).toBe(1)
+      expect(myStore.countQuads(stanfordEditNamedNode, aclAgentNamedNode, namedNode('http://sinopia.io/users/suntzu'))).toBe(1)
+      expect(myStore.countQuads(stanfordEditNamedNode, aclAccessToNamedNode, stanfordGroupNamedNode)).toBe(1)
+
+      expect(myStore.countQuads(stanfordReadNamedNode, aclModeNamedNode, aclReadNamedNode)).toBe(1)
+      expect(myStore.countQuads(stanfordReadNamedNode, aclAgentClassNamedNode, namedNode('http://xmlns.com/foaf/0.1/Agent'))).toBe(1)
+      expect(myStore.countQuads(stanfordReadNamedNode, aclAccessToNamedNode, stanfordGroupNamedNode)).toBe(1)
     })
   })
 })
