@@ -34,20 +34,26 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - setup_remote_docker
       - restore_cache:
           key: dependency-cache-ci-{{ checksum "package.json" }}
-      - run: npm run eslint
+      - run:
+          name: Run linter (eslint)
+          command: npm run eslint
       - run:
           name: Setup Code Climate test-reporter
           command: |
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
       - run:
-          name: test with jest
+          name: Run jest unit tests
           command: |
             ./cc-test-reporter before-build
             npm run jest-ci
             ./cc-test-reporter after-build --exit-code $?
+      - run:
+          name: Run integration tests
+          command: docker-compose run integration
 
 workflows:
   version: 2

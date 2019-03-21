@@ -42,6 +42,24 @@ module.exports = {
         'no-console': 'off',
         'no-process-exit': 'off'
       }
+    },
+    {
+      // Allow explicit boolean casts in integration tests to permit running inside and outside containerland
+      files: [
+        '__tests__/**/*.integration.js'
+      ],
+      rules: {
+        'no-extra-boolean-cast': 'off',
+      }
+    },
+    {
+      // Allow skipped tests in test suite
+      files: [
+        '__tests__/**/*.js'
+      ],
+      rules: {
+        'jest/no-disabled-tests': 'off',
+      }
     }
   ]
 }
