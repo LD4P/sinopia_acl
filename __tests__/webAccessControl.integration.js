@@ -10,7 +10,8 @@ describe('WebAccessControl integration', () => {
   test('base container ACLs can be parsed', async  () => {
     const rootAcls = await superagent.get(rootAclUrl).accept('text/turtle')
     const rootNode = namedNode('http://platform:8080/#auth')
-    const webAC = new WebAccessControl(rootAcls.text)
+    const webAC = new WebAccessControl('', rootAcls.text)
+
     expect(
       webAC.n3store.countQuads(rootNode, namedNode('http://www.w3.org/ns/auth/acl#accessTo'), namedNode('http://platform:8080/'))
     ).toBe(1)
