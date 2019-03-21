@@ -31,7 +31,16 @@ module.exports = {
         //   we get: "Import and export declarations are not supported yet"
         "node/no-unsupported-features/es-syntax": "off",
         // Avoiding: "warning  Found fs.readFileSync with non literal argument ..."
-        "security/detect-non-literal-fs-filename": "off"
+        "security/detect-non-literal-fs-filename": "off",
+        // Avoiding: "warning Found non-literal argument to RegExp Constructor"
+        "security/detect-non-literal-regexp": "off"
+      }
+    },
+    {
+      "files": ["src/webAccessControl.js"],
+      "rules": {
+        // we currently DO want to send errors to console
+        "no-console": "off"
       }
     },
     {

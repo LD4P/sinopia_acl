@@ -8,13 +8,13 @@
 
 import N3 from 'n3'
 const { DataFactory } = N3
-// const { namedNode, literal, defaultGraph, quad } = DataFactory
 const { namedNode } = DataFactory
 
 export class WebAccessControl {
 
-  constructor(wacData=null) {
-    this.n3store = N3.Store()
+  constructor(groupName='', wacData=null) {
+    this.groupName = groupName
+    this.n3store = N3.Store() // the object containing the graph
     this.userNodeArray = []
     if (wacData != null && wacData.length > 5)
       this.parseWac(wacData)
@@ -31,7 +31,7 @@ export class WebAccessControl {
     return this.listUsers().includes(userid)
   }
 
-  // returns true if triples in this.n3store pass WAC validation
+  // returns true if triples in graph pass WAC validation
   // throws error otherwise;  expectation is that caller will do something user friendly and useful with the error message
   validates() {
     if (this.n3store.countQuads(null, namedNode('http://www.w3.org/ns/auth/acl#accessTo'), null) == 0)
@@ -43,22 +43,42 @@ export class WebAccessControl {
     if (this.n3store.countQuads(null, namedNode('http://www.w3.org/ns/auth/acl#mode'), namedNode('http://www.w3.org/ns/auth/acl#Read')) == 0)
       throw "invalid WAC: no http://www.w3.org/ns/auth/acl#Read permissions"
 
-    if (this.isGroupContainer() &&
+    if (this.isMyGroupContainer() &&
         this.n3store.countQuads(null, namedNode('http://www.w3.org/ns/auth/acl#agent'), null) == 0)
       throw "invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids"
 
     return true
   }
 
-  // determine if WebAccessControl is for a group container (not the root container)
-  // a group container's URI has a defined, non-null path component that contains more
-  //  than just '/', which itself indicates the root container.
-  isGroupContainer() {
+  // determine if WebACL is for this.groupName container (not the root container, not a diff group container)
+  //   Note: a group container's URI has a defined, non-null path component that contains more
+  //     than just '/', which itself indicates the root container.
+  // returns true if WebACL is for this.groupName container
+  // returns false if WebACL is for the root container
+  // throws error if expected group is not this.groupName
+  isMyGroupContainer() {
     const accessToArray = this.n3store.getObjects(null, namedNode('http://www.w3.org/ns/auth/acl#accessTo'), null)
     return accessToArray.every((element) => {
       const path = new URL(element.value).pathname // includes slash prefix
-      return (path !== 'undefined' && path != null && path.length > 1)
+      if (path == 'undefined' || path == null || path.length < 2)
+        return false
+      else if (new RegExp(`^/${this.groupName}$`).test(path))
+        return true
+      else
+        throw `invalid WAC: acl:accessTo expected group "${this.groupName}"; found "${path.substr(1)}"`
     })
+  }
+
+  // returns a string containing ttl format serialized RDF from graph store
+  asTtl() {
+    try {
+      if (this.validates()) {
+        return N3.Writer().quadsToString(this.n3store.getQuads())
+      }
+    }
+    catch(err) {
+      console.error(`Unable to create WebAccessControl ttl to send to Sinopia server due to ${err}`)
+    }
   }
 
   // expect wacData to be a string
