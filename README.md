@@ -21,7 +21,7 @@ $ npm test
 
 ### Integration
 
-First spin up the integration environment (Trellis, its dependencies, and this repo's code) using `docker-compose`:
+If you're going to be doing active development, you'll most likely want to spin up `docker-compose` services and run integration tests separately, since you will do this multiple times while getting the code right. If so, first spin up the integration environment—Trellis & its dependencies—in the background (via `-d`) using `docker-compose`:
 
 ```shell
 $ docker-compose up -d platform
@@ -39,7 +39,7 @@ To shut the containers down and clean up, run:
 $ docker-compose down
 ```
 
-Or to bundle the above commands (mimicking how integration tests are run in CI), you can invoke the integration tests via:
+Or if you just need to run the integration tests once (assuming you haven't already started up `docker-compose` services), you can do the following to spin up containers, run integration tests, and then spin containers down. (This is how integration tests are run in CI.)
 
 ```shell
 $ docker-compose run integration
