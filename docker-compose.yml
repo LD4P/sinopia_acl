@@ -1,11 +1,13 @@
 version: "3"
 services:
-  broker:
-    image: rmohr/activemq
-    ports:
-      - 61616:61616
-      - 61613:61613
-      - 8161:8161
+  integration:
+    build:
+      context: .
+    environment:
+      INSIDE_CONTAINER: 'true'
+    command: dockerize -wait tcp://platform:8080 -wait tcp://broker:61613 -timeout 3m npm run jest-integration
+    depends_on:
+      - platform
   platform:
     image: ld4p/trellis-ext-db:latest
     environment:
@@ -17,22 +19,8 @@ services:
       - 8081:8081
     depends_on:
       - database
-      # - broker # seemingly not needed but the broker service is needed
+      - broker
       - migration
-  acl:
-    build:
-      context: .
-    command: dockerize -timeout 3m npm start
-    depends_on:
-      - platform
-  # integration:
-  #   build:
-  #     context: .
-  #   environment:
-  #     INSIDE_CONTAINER: 'true'
-  #   command: dockerize -wait tcp://platform:8080 -timeout 3m npm run integration
-  #   depends_on:
-  #     - acl
   database:
     image: postgres:latest
     environment:
@@ -42,6 +30,10 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata/mydata
     ports:
       - 5432:5432
+  broker:
+    image: rmohr/activemq
+    ports:
+      - 61613:61613
   migration:
     image: ld4p/trellis-ext-db:latest
     command: ["/opt/trellis/bin/trellis-db", "db", "migrate", "/opt/trellis/etc/config.yml"]

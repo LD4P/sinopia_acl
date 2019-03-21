@@ -12,15 +12,37 @@ The "copy of record" of group/webID mappings will be in the Sinopia server.
 
 ## Testing
 
-Using `docker-compose`, you can spin up a container with Trellis(, Postgres, ActiveMQ and this repo's code):
+To run the linter and unit tests:
 
 ```shell
-$ docker-compose up
+$ npm run eslint
+$ npm test
 ```
 
-To shut it down and clean up, run:
+### Integration
+
+If you're going to be doing active development, you'll most likely want to spin up `docker-compose` services and run integration tests separately, since you will do this multiple times while getting the code right. If so, first spin up the integration environment—Trellis & its dependencies—in the background (via `-d`) using `docker-compose`:
 
 ```shell
+$ docker-compose up -d platform
+```
+
+To run the integration tests, they must be invoked independent of the unit tests:
+
+```shell
+$ npm run jest-integration
+```
+
+To shut the containers down and clean up, run:
+
+```shell
+$ docker-compose down
+```
+
+Or if you just need to run the integration tests once (assuming you haven't already started up `docker-compose` services), you can do the following to spin up containers, run integration tests, and then spin containers down. (This is how integration tests are run in CI.)
+
+```shell
+$ docker-compose run integration
 $ docker-compose down
 ```
 
