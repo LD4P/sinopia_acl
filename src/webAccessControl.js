@@ -9,6 +9,13 @@
 import N3 from 'n3'
 const { DataFactory } = N3
 const { namedNode } = DataFactory
+const aclModeNode = namedNode('http://www.w3.org/ns/auth/acl#mode')
+const aclControlNode = namedNode('http://www.w3.org/ns/auth/acl#Control')
+const aclReadNode = namedNode('http://www.w3.org/ns/auth/acl#Read')
+const aclWriteNode = namedNode('http://www.w3.org/ns/auth/acl#Write')
+const aclAgentNode = namedNode('http://www.w3.org/ns/auth/acl#agent')
+const aclAccessToNode = namedNode('http://www.w3.org/ns/auth/acl#accessTo')
+const aclAgentClassNode = namedNode('http://www.w3.org/ns/auth/acl#agentClass')
 
 export class WebAccessControl {
 
@@ -19,6 +26,14 @@ export class WebAccessControl {
     if (wacData != null && wacData.length > 5)
       this.parseWac(wacData)
   }
+
+  aclModeNode() { return aclModeNode }
+  aclControlNode() { return aclControlNode }
+  aclReadNode() { return aclReadNode }
+  aclWriteNode() { return aclWriteNode }
+  aclAgentNode() { return aclAgentNode }
+  aclAccessToNode() { return aclAccessToNode }
+  aclAgentClassNode() { return aclAgentClassNode }
 
   // expect parseWac to have been called on desired WAC
   listUsers() {
@@ -34,17 +49,17 @@ export class WebAccessControl {
   // returns true if triples in graph pass WAC validation
   // throws error otherwise;  expectation is that caller will do something user friendly and useful with the error message
   validates() {
-    if (this.n3store.countQuads(null, namedNode('http://www.w3.org/ns/auth/acl#accessTo'), null) == 0)
+    if (this.n3store.countQuads(null, this.aclAccessToNode(), null) == 0)
       throw "invalid WAC: no http://www.w3.org/ns/auth/acl#accessTo predicate"
 
-    if (this.n3store.countQuads(null, namedNode('http://www.w3.org/ns/auth/acl#agentClass'), null) == 0)
+    if (this.n3store.countQuads(null, this.aclAgentClassNode(), null) == 0)
       throw "invalid WAC: no http://www.w3.org/ns/auth/acl#agentClass predicate"
 
-    if (this.n3store.countQuads(null, namedNode('http://www.w3.org/ns/auth/acl#mode'), namedNode('http://www.w3.org/ns/auth/acl#Read')) == 0)
+    if (this.n3store.countQuads(null, this.aclModeNode(), this.aclReadNode()) == 0)
       throw "invalid WAC: no http://www.w3.org/ns/auth/acl#Read permissions"
 
     if (this.isMyGroupContainer() &&
-        this.n3store.countQuads(null, namedNode('http://www.w3.org/ns/auth/acl#agent'), null) == 0)
+        this.n3store.countQuads(null, this.aclAgentNode(), null) == 0)
       throw "invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids"
 
     return true
@@ -57,7 +72,7 @@ export class WebAccessControl {
   // returns false if WebACL is for the root container
   // throws error if expected group is not this.groupName
   isMyGroupContainer() {
-    const accessToArray = this.n3store.getObjects(null, namedNode('http://www.w3.org/ns/auth/acl#accessTo'), null)
+    const accessToArray = this.n3store.getObjects(null, this.aclAccessToNode(), null)
     return accessToArray.every((element) => {
       const path = new URL(element.value).pathname // includes slash prefix
       if (path == 'undefined' || path == null || path.length < 2)
@@ -87,6 +102,6 @@ export class WebAccessControl {
     this.n3store = N3.Store()
     if (wacData)
       this.n3store.addQuads(parser.parse(wacData))
-    this.userNodeArray = this.n3store.getObjects(null, namedNode('http://www.w3.org/ns/auth/acl#agent'), null)
+    this.userNodeArray = this.n3store.getObjects(null, this.aclAgentNode(), null)
   }
 }
