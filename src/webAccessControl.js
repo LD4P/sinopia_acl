@@ -72,7 +72,7 @@ export class WebAccessControl {
   // returns false if WebACL is for the root container
   // throws error if expected group is not this.groupName
   isMyGroupContainer() {
-    const accessToArray = this.n3store.getObjects(null, this.aclAccessToNode(), null)
+    const accessToArray = this.n3store.getObjects(null, this.aclAccessToNode())
     return accessToArray.every((element) => {
       const path = new URL(element.value).pathname // includes slash prefix
       if (path == 'undefined' || path == null || path.length < 2)
