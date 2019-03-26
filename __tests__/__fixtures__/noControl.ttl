@@ -1,0 +1,7 @@
+@prefix acl:  <http://www.w3.org/ns/auth/acl#> .
+
+<http://platform:8080/#auth>
+        acl:mode        acl:Read ;
+        acl:mode        acl:Write ;
+        acl:agentClass  <http://xmlns.com/foaf/0.1/Agent> ;
+        acl:accessTo    <http://platform:8080/test> .

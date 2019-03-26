@@ -6,6 +6,7 @@
 // - If a user is given write access for a group, then they get all of acl:Read, acl:Write, and acl:Control
 //     "acl": "http://www.w3.org/ns/auth/acl#"
 
+import config from 'config'
 import N3 from 'n3'
 const { DataFactory } = N3
 const { namedNode } = DataFactory
@@ -22,7 +23,6 @@ export class WebAccessControl {
   constructor(groupName='', wacData=null) {
     this.groupName = groupName
     this.n3store = N3.Store() // the object containing the graph
-    this.userNodeArray = []
     if (wacData != null && wacData.length > 5)
       this.parseWac(wacData)
   }
@@ -36,16 +36,34 @@ export class WebAccessControl {
   aclAgentClassNode() { return aclAgentClassNode }
 
   // expect parseWac to have been called on desired WAC
-  listUsers() {
-    return this.userNodeArray.map(element => element.value)
+  //  this returns webids for users with control permissions (ususally implies write and read also in practice)
+  controlWebIds() {
+    return this.webidsWithControl
   }
 
-  // expect userid to be a string
+  // expect webid to be a string
   // expect parseWac to have been called on desired WAC
-  hasUser(userid) {
-    return this.listUsers().includes(userid)
+  hasControlWebId(webid) {
+    if (this.controlWebIds() === undefined)
+      return false
+    return this.controlWebIds().includes(webid)
   }
 
+  // expect parseWac to have been called on desired WAC
+  //  this returns webids for users with write (and read) permissions but not control
+  writeWebIds() {
+    return this.webidsWithWrite
+  }
+
+  // expect webid to be a string
+  // expect parseWac to have been called on desired WAC
+  hasWriteWebId(webid) {
+    if (this.writeWebIds() === undefined)
+      return false
+    return this.writeWebIds().includes(webid)
+  }
+
+  // expect parseWac to have been called on desired WAC
   // returns true if triples in graph pass WAC validation
   // throws error otherwise;  expectation is that caller will do something user friendly and useful with the error message
   validates() {
@@ -62,7 +80,32 @@ export class WebAccessControl {
         this.n3store.countQuads(null, this.aclAgentNode(), null) == 0)
       throw "invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids"
 
+    this.assertAdminControl()
+
     return true
+  }
+
+  // expect parseWac to have been called on desired WAC
+  // throws an error if:
+  //   - there is no subject node with acl:Control
+  //   - non-admin user has acl:Control permissions
+  //   - any admin users from config file do NOT have acl:Control permissions
+  assertAdminControl() {
+    if (this.controlWebIds().length == 0)
+      throw "invalid WAC: no webIds with control permission"
+
+    this.controlWebIds().every(controlWebId => {
+      if (!config.adminUsers.includes(controlWebId))
+        throw `invalid WAC: non-admin webId has control permission: ${controlWebId}`
+    })
+
+    // we need to do more checking if there are more config.adminUsers than controlWebIds
+    if (config.adminUsers.length > this.controlWebIds().length) {
+      config.adminUsers.forEach(webId => {
+        if (!this.controlWebIds().includes(webId))
+          throw `invalid WAC: admin does not have control permission: ${webId}`
+      })
+    }
   }
 
   // determine if WebACL is for this.groupName container (not the root container, not a diff group container)
@@ -75,7 +118,7 @@ export class WebAccessControl {
     const accessToArray = this.n3store.getObjects(null, this.aclAccessToNode())
     return accessToArray.every((element) => {
       const path = new URL(element.value).pathname // includes slash prefix
-      if (path == 'undefined' || path == null || path.length < 2)
+      if (path === undefined || path == null || path.length < 2)
         return false
       else if (new RegExp(`^/${this.groupName}$`).test(path))
         return true
@@ -100,8 +143,28 @@ export class WebAccessControl {
   parseWac(wacData) {
     const parser = N3.Parser()
     this.n3store = N3.Store()
-    if (wacData)
+    this.webidsWithControl = []
+    this.webidsWithWrite = []
+    if (wacData) {
       this.n3store.addQuads(parser.parse(wacData))
-    this.userNodeArray = this.n3store.getObjects(null, this.aclAgentNode(), null)
+      // control access
+      this.n3store.getSubjects(this.aclModeNode(), this.aclControlNode()).forEach(subjectNode => {
+        const userNodes = this.n3store.getObjects(subjectNode, this.aclAgentNode())
+        userNodes.forEach(userNode => {
+          const webId = userNode.value
+          if (!this.webidsWithControl.includes(webId))
+            this.webidsWithControl.push(webId)
+        })
+      })
+      // write but no control
+      this.n3store.getSubjects(this.aclModeNode(), this.aclWriteNode()).forEach(subjectNode => {
+        var userNodes = this.n3store.getObjects(subjectNode, this.aclAgentNode())
+        userNodes.forEach(userNode => {
+          var webId = userNode.value
+          if (!this.webidsWithWrite.includes(webId) && !this.webidsWithControl.includes(webId))
+            this.webidsWithWrite.push(webId)
+        })
+      })
+    }
   }
 }
