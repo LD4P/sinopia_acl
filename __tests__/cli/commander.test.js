@@ -1,30 +1,22 @@
-// Recipe for testing commander adapted from:
-//   https://medium.com/@ole.ersoy/unit-testing-commander-scripts-with-jest-bc32465709d6
 import path from 'path'
 import child from 'child_process'
 import sinopiaAcl from '../../package'
 
-// Don't actually invoke the CLI, which is tested elsewhere.
-// NOTE: Not used yet. See skips below
-//
-// import CLI from '../../src/cli/index'
-// jest.mock('../../src/cli/index')
-
-const exec = child.exec
-
+// Recipe for testing commander adapted from:
+//   https://medium.com/@ole.ersoy/unit-testing-commander-scripts-with-jest-bc32465709d6
 const cli = (args, cwd) => {
   return new Promise(resolve => {
     // NOTE: this path is relative to your current dir, not relative to this file
-    exec(`babel-node ${path.resolve('./src/cli/commander')} ${args.join(' ')}`,
-         { cwd },
-         (error, stdout, stderr) => {
-           resolve({
-             code: error && error.code ? error.code : 0,
-             error,
-             stdout,
-             stderr
-           })
-         })
+    child.exec(`babel-node ${path.resolve('./src/cli/commander')} ${args.join(' ')}`,
+      { cwd },
+      (error, stdout, stderr) => {
+        resolve({
+          code: error && error.code ? error.code : 0,
+          error,
+          stdout,
+          stderr
+        })
+      })
   })
 }
 
@@ -49,13 +41,18 @@ describe('commander', () => {
       expect(result.stderr.trim()).toBe('error: missing required argument `group\'')
     })
     test('returns 0 when command succeeds', async () => {
-      const result = await cli(['users', 'group name here'], '.')
+      const result = await cli(['users', 'group slug here'], '.')
       expect(result.code).toBe(0)
     })
     test.skip('logs error and returns 1 when command throws', async () => {
-      // TODO: fix this test. Problem: CLI instance mocked below is not
-      //       accessible to us since it's created in another process in the
-      //       `const cli` declaration above
+      // TODO: fix this test: https://github.com/LD4P/sinopia_acl/issues/38
+      //
+      // The Problem: the CLI instance mocked below is not accessible to us
+      //              since it's created in another process in the `const cli`
+      //              declaration above, so we can't vary its behavior.
+      //
+      // import CLI from '../../src/cli/index'
+      // jest.mock('../../src/cli/index')
       //
       // let errorSpy = jest.spyOn(console, 'error')
       // let errorMessage = 'it broke'
@@ -69,7 +66,7 @@ describe('commander', () => {
       //     }
       //   })
       // })
-      // const result = await cli(['users', 'group name here'], '.')
+      // const result = await cli(['users', 'group slug here'], '.')
       // expect(result.code).toBe(1)
       // expect(errorSpy).toHaveBeenCalledWith(`Error listing users: ${errorMessage}`)
     })
@@ -77,6 +74,20 @@ describe('commander', () => {
   describe('groups', () => {
     test('returns 0 when command succeeds', async () => {
       const result = await cli(['groups'], '.')
+      expect(result.code).toBe(0)
+    })
+    test.skip('logs error and returns 1 when command throws', async () => {
+      // TODO: fix this test. See related skip above in users() block.
+    })
+  })
+  describe('create', () => {
+    test('prints error and returns 1 without required arg', async () => {
+      const result = await cli(['create'], '.')
+      expect(result.code).toBe(1)
+      expect(result.stderr.trim()).toBe('error: missing required argument `group\'')
+    })
+    test('returns 0 when command succeeds', async () => {
+      const result = await cli(['create', 'group slug here'], '.')
       expect(result.code).toBe(0)
     })
     test.skip('logs error and returns 1 when command throws', async () => {

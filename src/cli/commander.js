@@ -10,13 +10,26 @@ commander
 
 commander
   .command('users <group>')
-  .description('List users and access controls in a group')
+  .description('List users with write access in a group')
   .action(group => {
     try {
       cli.listUsers(group)
       process.exit(0)
     } catch(error) {
       console.error(`Error listing users: ${error}`)
+      process.exit(1)
+    }
+  })
+
+commander
+  .command('create <group>')
+  .description('Create a group')
+  .action(group => {
+    try {
+      cli.createGroup(group)
+      process.exit(0)
+    } catch(error) {
+      console.error(`Error creating group: ${error}`)
       process.exit(1)
     }
   })
@@ -36,7 +49,7 @@ commander
 
 commander
   .command('add <user> <group>')
-  .description('Add user to group')
+  .description('Add user (with write access) to group')
   .action((user, group) => {
     try {
       cli.addUserToGroup(user, group)
@@ -49,7 +62,7 @@ commander
 
 commander
   .command('remove <user> <group>')
-  .description('Remove user from group')
+  .description('Remove user (with write access) from group')
   .action((user, group) => {
     try {
       cli.removeUserFromGroup(user, group)
