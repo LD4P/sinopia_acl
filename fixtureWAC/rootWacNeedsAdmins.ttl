@@ -1,4 +1,4 @@
-@prefix acl:  <http://www.w3.org/ns/auth/acl#> .
+PREFIX acl:  <http://www.w3.org/ns/auth/acl#>
 
 <http://platform:8080/#root-control>
         acl:mode      acl:Read ;
