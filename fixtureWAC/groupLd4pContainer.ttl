@@ -1,0 +1,6 @@
+PREFIX ldp: <http://www.w3.org/ns/ldp#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+<>
+        a ldp:BasicContainer, ldp:Container ;
+        rdfs:label "Sinopia LD4P Group Container" .
