@@ -1,6 +1,6 @@
 PREFIX acl:  <http://www.w3.org/ns/auth/acl#>
 
-<http://platform:8080/#root-control>
+<http://platform:8080/#control>
         acl:mode      acl:Read ;
         acl:mode      acl:Write ;
         acl:mode      acl:Control ;
@@ -8,7 +8,7 @@ PREFIX acl:  <http://www.w3.org/ns/auth/acl#>
         acl:agent     <http://sinopia.io/users/suntzu> ;
         acl:accessTo  <http://platform:8080/> .
 
-<http://platform:8080/#root-read>
+<http://platform:8080/#read>
         acl:mode        acl:Read ;
         acl:agentClass  <http://xmlns.com/foaf/0.1/Agent> ;
         acl:accessTo    <http://platform:8080/> .
