@@ -1,0 +1,13 @@
+PREFIX acl:  <http://www.w3.org/ns/auth/acl#>
+
+<http://platform:8080/#control>
+        acl:mode      acl:Read ;
+        acl:mode      acl:Write ;
+        acl:mode      acl:Control ;
+        acl:agent     <http://ADMIN1/WEBID> ;
+        acl:accessTo  <http://platform:8080/> .
+
+<http://platform:8080/#read>
+        acl:mode        acl:Read ;
+        acl:agentClass  <http://xmlns.com/foaf/0.1/Agent> ;
+        acl:accessTo    <http://platform:8080/> .
