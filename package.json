@@ -13,7 +13,7 @@
     "test": "jest --colors"
   },
   "engines": {
-    "node": "10.11.x"
+    "node": "10.12.x"
   },
   "repository": {
     "type": "git",
