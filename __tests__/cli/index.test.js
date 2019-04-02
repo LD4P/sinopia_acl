@@ -9,19 +9,26 @@ describe('CLI', () => {
     expect(consoleSpy).toHaveBeenCalledWith('not implemented yet')
   })
   test('listUsers()', () => {
-    const group = 'http://localhost/foo'
+    const group = 'foobar'
     cli.listUsers(group)
     expect(consoleSpy).toHaveBeenCalledWith(`not implemented yet. args: ${group}`)
   })
+  test('createGroup()', () => {
+    const cliSpy = jest.spyOn(cli, 'createGroup')
+    const group = 'testingGroup'
+    cli.createGroup(group)
+    expect(consoleSpy).not.toHaveBeenCalled()
+    expect(cliSpy).toHaveBeenCalledWith(group)
+  })
   test('addUserToGroup()', () => {
     const user = 'http://sinopia.io/users/mjgiarlo'
-    const group = 'http://localhost:8080/stanford'
+    const group = 'stanford'
     cli.addUserToGroup(user, group)
     expect(consoleSpy).toHaveBeenCalledWith(`not implemented yet. args: ${user}, ${group}`)
   })
   test('removeUserFromGroup()', () => {
     const user = 'http://sinopia.io/users/mjgiarlo'
-    const group = 'http://localhost:8080/stanford'
+    const group = 'stanford'
     cli.removeUserFromGroup(user, group)
     expect(consoleSpy).toHaveBeenCalledWith(`not implemented yet. args: ${user}, ${group}`)
   })

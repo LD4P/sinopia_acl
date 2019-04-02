@@ -1,4 +1,4 @@
-import superagent from 'superagent'
+import request from 'sync-request'
 import N3 from 'n3'
 import { WebAccessControl } from '../src/webAccessControl'
 
@@ -7,10 +7,10 @@ const { namedNode } = DataFactory
 const rootAclUrl = Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080/?ext=acl' : 'http://localhost:8080/?ext=acl'
 
 describe('WebAccessControl integration', () => {
-  test('base container ACLs can be parsed', async  () => {
-    const rootAcls = await superagent.get(rootAclUrl).accept('text/turtle')
+  test('base container ACLs can be parsed', () => {
+    const rootAcls = request('GET', rootAclUrl)
     const rootNode = namedNode('http://platform:8080/#auth')
-    const webAC = new WebAccessControl('', rootAcls.text)
+    const webAC = new WebAccessControl('', rootAcls.getBody('utf8'))
 
     expect(
       webAC.n3store.countQuads(rootNode, namedNode('http://www.w3.org/ns/auth/acl#accessTo'), namedNode('http://platform:8080/'))

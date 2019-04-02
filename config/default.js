@@ -3,5 +3,6 @@ module.exports = {
     [
       'http://sinopia.io/users/webid4Admin1',
       'http://sinopia.io/users/webid4Admin2'
-    ]
+    ],
+  baseUrl: 'http://localhost:8080'
 }

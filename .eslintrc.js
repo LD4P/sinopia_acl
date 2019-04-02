@@ -14,6 +14,7 @@ module.exports = {
     "plugin:jest/recommended"
   ],
   env: {
+    "es6": true,
     "jest": true,
     "node": true
   },
@@ -24,8 +25,13 @@ module.exports = {
   overrides: [
     {
       "files": ["src/**/*.js",
+                "__mocks__/**/*.js",
                 "__tests__/**/*.js"],
       "rules": {
+        // Indent `case` statements within `switch` blocks
+        "indent": ["error", 2, {
+          "SwitchCase": 1
+        }],
         // See https://github.com/mysticatea/eslint-plugin-node/blob/master/docs/rules/no-unsupported-features/es-syntax.md
         //   rule supposedly matches ECMA version with node
         //   we get: "Import and export declarations are not supported yet"
@@ -33,14 +39,16 @@ module.exports = {
         // Avoiding: "warning  Found fs.readFileSync with non literal argument ..."
         "security/detect-non-literal-fs-filename": "off",
         // Avoiding: "warning Found non-literal argument to RegExp Constructor"
-        "security/detect-non-literal-regexp": "off"
-      }
-    },
-    {
-      "files": ["src/webAccessControl.js"],
-      "rules": {
-        // we currently DO want to send errors to console
-        "no-console": "off"
+        "security/detect-non-literal-regexp": "off",
+        // this is a CLI tool; we DO want to send output to console
+        "no-console": "off",
+        // allow unused variables that begin with underscore
+        "no-unused-vars": [
+          "error",
+          {
+            "argsIgnorePattern": "^_"
+          }
+        ]
       }
     },
     {
@@ -48,7 +56,6 @@ module.exports = {
         'src/cli/*.js'
       ],
       rules: {
-        'no-console': 'off',
         'no-process-exit': 'off'
       }
     },
