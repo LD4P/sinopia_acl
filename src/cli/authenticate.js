@@ -26,5 +26,5 @@ prompt.start()
 prompt.get(promptConfig, (err, prompted) => {
   if (err)
     throw(err)
-  new AuthenticateClient().cognitoTokenToFile(prompted.username, prompted.password)
+  new AuthenticateClient(prompted.username, prompted.password).cognitoTokenToFile()
 })

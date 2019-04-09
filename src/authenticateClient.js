@@ -2,19 +2,36 @@ import config from 'config'
 import fs from 'fs'
 import util from 'util' // for better error message
 import NodeFetch from 'node-fetch'
+import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js'
+
+// Need fetch polyfill because amazon-cognito-identity-js uses the Fetch API.
+// See: https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js#setup
 global.fetch = NodeFetch
-// amazon-cognito-identity-js has no export so we need require
-const AmazonCognitoIdentity = require('amazon-cognito-identity-js')
 
 export default class AuthenticateClient {
-  constructor() {
-    this.userPoolId = config.get('userPoolId')
-    this.appClientId = config.get('userPoolAppClientId')
-    this.cognitoTokenFile = config.get('cognitoTokenFile')
+  constructor(username, password) {
+    this.username = username
+    this.password = password
+    // Extracting these to methods makes for easier testing
+    this.userPoolId = this.userPoolIdFromConfig()
+    this.appClientId = this.appClientIdFromConfig()
+    this.cognitoTokenFile = this.cognitoTokenFileFromConfig()
+
+    if (!this.username || !this.password) {
+      const errmsg = "ERROR: username and password are required (usually passed at command line)"
+      console.error(errmsg)
+      throw errmsg
+    }
+
+    if (!this.userPoolId || !this.appClientId) {
+      const errmsg = "ERROR: userPoolId and userPoolAppClientId are required (usually in config files)"
+      console.error(errmsg)
+      throw errmsg
+    }
   }
 
-  async cognitoTokenToFile(username, password) {
-    await this.accessTokenPromise(username, password)
+  async cognitoTokenToFile() {
+    await this.accessTokenPromise()
       .then((jwt) => {
         try {
           fs.writeFileSync(this.cognitoTokenFile, jwt)
@@ -27,32 +44,22 @@ export default class AuthenticateClient {
       })
   }
 
-  // methods below this line can be considered "private"
-
-  // return JWT that is a valid cognito accessToken
-  // adapted from use case #4 here: https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js#usage
-  accessTokenPromise(username, password) {
-    if (!username || !password) {
-      const errmsg = "ERROR: username and password are required (usually passed at command line)"
-      console.error(errmsg)
-      return new Promise((reject) => {reject (errmsg)})
-    }
-    if (!this.userPoolId || !this.appClientId) {
-      const errmsg = "ERROR: userPoolId and userPoolAppClientId are required (usually in config files)"
-      console.error(errmsg)
-      return new Promise((reject) => {reject (errmsg)})
-    }
-
-    let cognitoUser = this.cognitoUser(username, this.userPoolId, this.appClientId)
-
+  /**
+   * Return JWT that is a valid cognito accessToken adapted from use case #4
+   * here:
+   * https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js#usage
+   *
+   * @private
+   */
+  accessTokenPromise() {
     return new Promise((resolve, reject) => {
-      cognitoUser.authenticateUser(this.authenticationDetails(username, password), {
+      this.cognitoUser().authenticateUser(this.authenticationDetails(), {
         onSuccess: result => {
           const jwt = result.getAccessToken().getJwtToken()
           if (jwt)
             resolve(jwt)
           else
-            reject(`ERROR: retrieved null cognito access token for ${username}`)
+            reject(`ERROR: retrieved null cognito access token for ${this.username}`)
         },
         onFailure: err => {
           reject(err)
@@ -61,25 +68,51 @@ export default class AuthenticateClient {
     })
   }
 
-  authenticationDetails(username, password) {
+  /**
+   * @private
+   */
+  userPoolIdFromConfig() {
+    return config.get('userPoolId')
+  }
+
+  /**
+   * @private
+   */
+  appClientIdFromConfig() {
+    return config.get('userPoolAppClientId')
+  }
+
+  /**
+   * @private
+   */
+  cognitoTokenFileFromConfig() {
+    return config.get('cognitoTokenFile')
+  }
+
+  /**
+   * @private
+   */
+  authenticationDetails() {
     let authenticationData = {
-      Username : username,
-      Password : password
+      Username: this.username,
+      Password: this.password
     }
-    return new AmazonCognitoIdentity.AuthenticationDetails(authenticationData)
+    return new AuthenticationDetails(authenticationData)
   }
 
-  cognitoUser(username, userPoolId, appClientId) {
+  /**
+   * @private
+   */
+  cognitoUser() {
     let poolData = {
-      UserPoolId : userPoolId,
-      ClientId : appClientId
+      UserPoolId: this.userPoolId,
+      ClientId: this.appClientId
     }
-    let userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
+    let userPool = new CognitoUserPool(poolData)
     let userData = {
-      Username : username,
-      Pool : userPool
+      Username: this.username,
+      Pool: userPool
     }
-    return new AmazonCognitoIdentity.CognitoUser(userData);
+    return new CognitoUser(userData);
   }
-
 }
