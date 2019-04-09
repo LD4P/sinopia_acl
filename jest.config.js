@@ -30,7 +30,9 @@ module.exports = {
 
   // An array of glob pattern strings used to skip coverage collection
   coveragePathIgnorePatterns: [
-    'src/cli/commander.js'
+    'src/cli/commander.js',
+    'src/cli/authenticate.js',
+    'src/populateEmptyTrellis.js'
   ],
 
   // A list of reporter names that Jest uses when writing coverage reports
