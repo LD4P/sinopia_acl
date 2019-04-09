@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "Interact with WebACL data on Sinopia server",
   "bin": {
-    "acl": "bin/acl"
+    "acl": "bin/acl",
+    "authenticate": "bin/authenticate"
   },
   "scripts": {
     "eslint": "eslint --color -c .eslintrc.js --ext js .",
@@ -50,6 +51,7 @@
     "config": "^3.0.1",
     "n3": "^1.0.4",
     "node-fetch": "^2.3.0",
+    "prompt": "^1.0.0",
     "sync-request": "^6.1.0"
   }
 }
