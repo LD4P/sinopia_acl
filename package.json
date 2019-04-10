@@ -11,6 +11,7 @@
     "jest-cov": "jest --colors --coverage --runInBand",
     "jest-ci": "jest --colors --ci --coverage --runInBand",
     "jest-integration": "jest --colors --testRegex=\\.integration\\.js$",
+    "migration": "babel-node src/populateEmptyTrellis.js",
     "test": "jest --colors --runInBand"
   },
   "engines": {
@@ -49,6 +50,7 @@
     "amazon-cognito-identity-js": "^3.0.10",
     "commander": "^2.19.0",
     "config": "^3.0.1",
+    "mustache": "^3.0.1",
     "n3": "^1.0.4",
     "node-fetch": "^2.3.0",
     "prompt": "^1.0.0",
