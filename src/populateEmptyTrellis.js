@@ -4,6 +4,8 @@ import Mustache from 'mustache'
 import request from 'sync-request'
 import sleep from 'sleep'
 
+const baseUrl = Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080' : config.baseUrl
+
 const renderTemplateFile = (templatePath, templateValues) => {
   const template = fs.readFileSync(templatePath, 'utf8')
   return Mustache.render(template, templateValues)
@@ -17,7 +19,7 @@ const token = (fs.existsSync(config.cognitoTokenFile)) ?
 
 console.log('creating root container')
 
-request('PATCH', config.baseUrl, {
+request('PATCH', baseUrl, {
   headers: {
     'Content-Type': 'application/sparql-update',
     'Authorization': `Bearer ${token}`
@@ -30,10 +32,10 @@ sleep.sleep(1)
 
 console.log('creating repository container')
 
-let response = request('HEAD', `${config.baseUrl}/repository`)
+let response = request('HEAD', `${baseUrl}/repository`)
 
 if (response.statusCode == 404) {
-  request('POST', config.baseUrl, {
+  request('POST', baseUrl, {
     headers: {
       'Content-Type': 'text/turtle',
       'Link': '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
@@ -43,7 +45,7 @@ if (response.statusCode == 404) {
     body: fs.readFileSync('./fixtureWAC/repositoryContainer.ttl')
   })
 } else {
-  request('PATCH', `${config.baseUrl}/repository`, {
+  request('PATCH', `${baseUrl}/repository`, {
     headers: {
       'Content-Type': 'application/sparql-update',
       'Authorization': `Bearer ${token}`
@@ -58,10 +60,10 @@ Object.entries(config.groups).forEach(([slug, label]) => {
 
   console.log(`creating ${slug} group container`)
 
-  response = request('HEAD', `${config.baseUrl}/repository/${slug}`)
+  response = request('HEAD', `${baseUrl}/repository/${slug}`)
 
   if (response.statusCode == 404) {
-    request('POST', `${config.baseUrl}/repository`, {
+    request('POST', `${baseUrl}/repository`, {
       headers: {
         'Content-Type': 'text/turtle',
         'Link': '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
@@ -73,7 +75,7 @@ Object.entries(config.groups).forEach(([slug, label]) => {
       })
     })
   } else {
-    request('PATCH', `${config.baseUrl}/repository/${slug}`, {
+    request('PATCH', `${baseUrl}/repository/${slug}`, {
       headers: {
         'Content-Type': 'application/sparql-update',
         'Authorization': `Bearer ${token}`
@@ -91,7 +93,7 @@ sleep.sleep(1)
 // Do ACLs last, i.e., *after* creating containers, else we require a valid JWT for the above operations
 console.log('setting root container ACLs')
 
-request('PATCH', `${config.baseUrl}/?ext=acl`, {
+request('PATCH', `${baseUrl}/?ext=acl`, {
   headers: {
     'Content-Type': 'application/sparql-update',
     'Authorization': `Bearer ${token}`

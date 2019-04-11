@@ -24,7 +24,7 @@ $ npm test
 If you're going to be doing active development, you'll most likely want to spin up `docker-compose` services and run integration tests separately, since you will do this multiple times while getting the code right. If so, first spin up the integration environment—Trellis & its dependencies—in the background (via `-d`) using `docker-compose`:
 
 ```shell
-$ docker-compose up -d platform
+$ docker-compose up -d platformdata
 ```
 
 To run the integration tests, they must be invoked independent of the unit tests:

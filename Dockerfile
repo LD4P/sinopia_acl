@@ -4,4 +4,14 @@ WORKDIR /home/circleci
 
 COPY . .
 
+USER root
+
+# Allow circleci user to run babel-node executable
+RUN /bin/bash -c 'chown -R circleci node_modules'
+
+USER circleci
+
+# Add babel-node to PATH
+ENV PATH "$PATH:node_modules/.bin"
+
 RUN npm install

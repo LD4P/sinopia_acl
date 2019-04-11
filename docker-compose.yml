@@ -8,6 +8,17 @@ services:
     command: dockerize -wait tcp://platform:8080 -wait tcp://broker:61613 -timeout 3m npm run jest-integration
     depends_on:
       - platform
+  platformdata:
+    build:
+      context: .
+    environment:
+      INSIDE_CONTAINER: 'true'
+      TRELLIS_BASE_URL: http://platform:8080
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-us-west-2_CGd9Wq136}
+      AWS_COGNITO_REGION: ${AWS_COGNITO_REGION:-us-west-2}
+    command: dockerize -wait tcp://platform:8080 -timeout 3m bin/migrate
+    depends_on:
+      - platform
   platform:
     image: ld4p/trellis-ext-db:latest
     environment:
