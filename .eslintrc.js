@@ -62,7 +62,8 @@ module.exports = {
     {
       // Allow explicit boolean casts in integration tests to permit running inside and outside containerland
       files: [
-        '__tests__/**/*.integration.js'
+        '__tests__/**/*.integration.js',
+        'src/populateEmptyTrellis.js'
       ],
       rules: {
         'no-extra-boolean-cast': 'off',
