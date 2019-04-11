@@ -1,3 +1,4 @@
+[![npm](https://img.shields.io/npm/v/sinopia_acl.svg)](https://www.npmjs.com/package/sinopia_acl)
 [![CircleCI](https://circleci.com/gh/LD4P/sinopia_acl.svg?style=svg)](https://circleci.com/gh/LD4P/sinopia_acl)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/1abbbb1e7eef5ad1a9a5/test_coverage)](https://codeclimate.com/github/LD4P/sinopia_acl/test_coverage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/1abbbb1e7eef5ad1a9a5/maintainability)](https://codeclimate.com/github/LD4P/sinopia_acl/maintainability)
