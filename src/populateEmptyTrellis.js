@@ -2,53 +2,101 @@ import config from 'config'
 import fs from 'fs'
 import Mustache from 'mustache'
 import request from 'sync-request'
+import sleep from 'sleep'
 
 const renderTemplateFile = (templatePath, templateValues) => {
   const template = fs.readFileSync(templatePath, 'utf8')
   return Mustache.render(template, templateValues)
 }
 
+console.log(`retrieving token from ${config.cognitoTokenFile}`)
+
+const token = fs.readFileSync(config.cognitoTokenFile, 'utf8').trim()
+
 console.log('creating root container')
 
-request('PUT', config.baseUrl, {
+request('PATCH', config.baseUrl, {
   headers: {
-    'Content-Type': 'text/turtle'
+    'Content-Type': 'application/sparql-update',
+    'Authorization': `Bearer ${token}`
   },
-  body: fs.readFileSync('./fixtureWAC/rootContainer.ttl', 'utf8')
+  body: fs.readFileSync('./fixtureWAC/rootContainer.sparql', 'utf8')
 })
+
+// Pause between requests to give Trellis time to persist data
+sleep.sleep(1)
 
 console.log('creating repository container')
 
-request('POST', config.baseUrl, {
-  headers: {
-    'Content-Type': 'text/turtle',
-    'Link': '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
-    'Slug': 'repository'
-  },
-  body: fs.readFileSync('./fixtureWAC/repositoryContainer.ttl')
+let response = request('HEAD', `${config.baseUrl}/repository`)
+
+if (response.statusCode == 404) {
+  request('POST', config.baseUrl, {
+    headers: {
+      'Content-Type': 'text/turtle',
+      'Link': '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
+      'Slug': 'repository',
+      'Authorization': `Bearer ${token}`
+    },
+    body: fs.readFileSync('./fixtureWAC/repositoryContainer.ttl')
+  })
+} else {
+  request('PATCH', `${config.baseUrl}/repository`, {
+    headers: {
+      'Content-Type': 'application/sparql-update',
+      'Authorization': `Bearer ${token}`
+    },
+    body: fs.readFileSync('./fixtureWAC/repositoryContainer.sparql', 'utf8')
+  })
+}
+
+Object.entries(config.groups).forEach(([slug, label]) => {
+  // Pause between requests to give Trellis time to persist data
+  sleep.sleep(1)
+
+  console.log(`creating ${slug} group container`)
+
+  response = request('HEAD', `${config.baseUrl}/repository/${slug}`)
+
+  if (response.statusCode == 404) {
+    request('POST', `${config.baseUrl}/repository`, {
+      headers: {
+        'Content-Type': 'text/turtle',
+        'Link': '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
+        'Slug': slug,
+        'Authorization': `Bearer ${token}`
+      },
+      body: renderTemplateFile('./fixtureWAC/groupContainer.ttl.mustache', {
+        label: label
+      })
+    })
+  } else {
+    request('PATCH', `${config.baseUrl}/repository/${slug}`, {
+      headers: {
+        'Content-Type': 'application/sparql-update',
+        'Authorization': `Bearer ${token}`
+      },
+      body: renderTemplateFile('./fixtureWAC/groupContainer.sparql.mustache', {
+        label: label
+      })
+    })
+  }
 })
 
-console.log('creating ld4p group container')
+// Pause between requests to give Trellis time to persist data
+sleep.sleep(1)
 
-request('POST', `${config.baseUrl}/repository`, {
-  headers: {
-    'Content-Type': 'text/turtle',
-    'Link': '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
-    'Slug': 'ld4p'
-  },
-  body: fs.readFileSync('./fixtureWAC/groupLd4pContainer.ttl')
-})
-
-// Do ACLs last, i.e., *after* creating containers, else we need a valid JWT for the above operations
+// Do ACLs last, i.e., *after* creating containers, else we require a valid JWT for the above operations
 console.log('setting root container ACLs')
 
-request('PUT', `${config.baseUrl}/?ext=acl`, {
+request('PATCH', `${config.baseUrl}/?ext=acl`, {
   headers: {
-    'Content-Type': 'text/turtle'
+    'Content-Type': 'application/sparql-update',
+    'Authorization': `Bearer ${token}`
   },
-  body: renderTemplateFile('./fixtureWAC/rootWAC.mustache', {
+  body: renderTemplateFile('./fixtureWAC/rootWAC.sparql.mustache', {
     adminAgents: config.adminUsers.map(webid => {
-      return `        acl:agent     <${webid}> ;`
+      return `    </#control> acl:agent <${webid}> .`
     }).join("\n")
   })
 })

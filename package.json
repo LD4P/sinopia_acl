@@ -4,14 +4,14 @@
   "description": "Interact with WebACL data on Sinopia server",
   "bin": {
     "acl": "bin/acl",
-    "authenticate": "bin/authenticate"
+    "authenticate": "bin/authenticate",
+    "migrate": "bin/migrate"
   },
   "scripts": {
     "eslint": "eslint --color -c .eslintrc.js --ext js .",
     "jest-cov": "jest --colors --coverage --runInBand",
     "jest-ci": "jest --colors --ci --coverage --runInBand",
     "jest-integration": "jest --colors --testRegex=\\.integration\\.js$",
-    "migration": "babel-node src/populateEmptyTrellis.js",
     "test": "jest --colors --runInBand"
   },
   "engines": {
@@ -54,6 +54,7 @@
     "n3": "^1.0.4",
     "node-fetch": "^2.3.0",
     "prompt": "^1.0.0",
+    "sleep": "^6.0.0",
     "sync-request": "^6.1.0"
   }
 }
