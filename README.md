@@ -9,6 +9,18 @@ WebACL (https://www.w3.org/wiki/WebAccessControl) is how we will gate access to 
 
 The "copy of record" of group/webID mappings will be in the Sinopia server.
 
+## Command Line
+
+This code will have a simple CLI for Sinopia Server admins to use, to be developed in a future work cycle (as of April, 2019).
+
+It will expect the admin user to have a valid JWT in a .cognitoToken file (to allow Trellis to know the admin user has permisssions to make the changes to WebACL data). You can populate this file via `bin/authenticate`, at which point you will be prompted for your Sinopia Cognito pool username and password.
+
+To spin up Trellis and its dependencies with the Sinopia container structure (root, repository, and group containers) and ACLs (declared on root container) pre-created, you can do using the `platformdata` docker-compose service:
+
+```shell
+# Add -d flag to run containers in background
+$ docker-compose up platformdata
+```
 
 ## Testing
 
@@ -16,15 +28,17 @@ To run the linter and unit tests:
 
 ```shell
 $ npm run eslint
-$ npm test
+$ AUTH_TEST_PASS=foobar npm test
 ```
+
+Note that you will need to replace the value of `AUTH_TEST_PASS` with the actual password of the Cognito testing account we have created. For that, see the Sinopia dev `shared_configs` [repository](https://github.com/sul-dlss/shared_configs/tree/sinopia-dev) or ask a fellow Sinopia developer.
 
 ### Integration
 
 If you're going to be doing active development, you'll most likely want to spin up `docker-compose` services and run integration tests separately, since you will do this multiple times while getting the code right. If so, first spin up the integration environment—Trellis & its dependencies—in the background (via `-d`) using `docker-compose`:
 
 ```shell
-$ docker-compose up -d platformdata
+$ docker-compose up -d platform
 ```
 
 To run the integration tests, they must be invoked independent of the unit tests:
@@ -45,14 +59,6 @@ Or if you just need to run the integration tests once (assuming you haven't alre
 $ docker-compose run integration
 $ docker-compose down
 ```
-
-## Command Line
-
-This code will have a simple CLI for Sinopia Server admins to use
-
-It will expect the admin user to have a JWT in an .ENV file (to allow server to know the admin user has permisssions to make the changes to WebACL data).
-
-
 
 ## Development Principles:
 
