@@ -94,14 +94,15 @@ export class WebAccessControl {
     if (this.controlWebIds().length == 0)
       throw "invalid WAC: no webIds with control permission"
 
+    const adminUsers = config.get('adminUsers')
     this.controlWebIds().every(controlWebId => {
-      if (!config.adminUsers.includes(controlWebId))
+      if (!adminUsers.includes(controlWebId))
         throw `invalid WAC: non-admin webId has control permission: ${controlWebId}`
     })
 
-    // we need to do more checking if there are more config.adminUsers than controlWebIds
-    if (config.adminUsers.length > this.controlWebIds().length) {
-      config.adminUsers.forEach(webId => {
+    // we need to do more checking if there are more adminUsers than controlWebIds
+    if (adminUsers.length > this.controlWebIds().length) {
+      adminUsers.forEach(webId => {
         if (!this.controlWebIds().includes(webId))
           throw `invalid WAC: admin does not have control permission: ${webId}`
       })

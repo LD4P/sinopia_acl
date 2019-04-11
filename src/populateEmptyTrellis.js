@@ -4,17 +4,18 @@ import Mustache from 'mustache'
 import request from 'sync-request'
 import sleep from 'sleep'
 
-const baseUrl = Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080' : config.baseUrl
+const baseUrl = Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080' : config.get('baseUrl')
 
 const renderTemplateFile = (templatePath, templateValues) => {
   const template = fs.readFileSync(templatePath, 'utf8')
   return Mustache.render(template, templateValues)
 }
 
-console.log(`retrieving token from ${config.cognitoTokenFile}`)
+const cogTokenFile = config.get('cognitoTokenFile')
+console.log(`retrieving token from ${cogTokenFile}`)
 
-const token = (fs.existsSync(config.cognitoTokenFile)) ?
-  fs.readFileSync(config.cognitoTokenFile, 'utf8').trim() :
+const token = (fs.existsSync(cogTokenFile)) ?
+  fs.readFileSync(cogTokenFile, 'utf8').trim() :
   ''
 
 console.log('creating root container')
@@ -54,7 +55,7 @@ if (response.statusCode == 404) {
   })
 }
 
-Object.entries(config.groups).forEach(([slug, label]) => {
+Object.entries(config.get('groups')).forEach(([slug, label]) => {
   // Pause between requests to give Trellis time to persist data
   sleep.sleep(1)
 
@@ -99,7 +100,7 @@ request('PATCH', `${baseUrl}/?ext=acl`, {
     'Authorization': `Bearer ${token}`
   },
   body: renderTemplateFile('./fixtureWAC/rootWAC.sparql.mustache', {
-    adminAgents: config.adminUsers.map(webid => {
+    adminAgents: config.get('adminUsers').map(webid => {
       return `    </#control> acl:agent <${webid}> .`
     }).join("\n")
   })

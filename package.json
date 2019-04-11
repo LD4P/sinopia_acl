@@ -48,6 +48,7 @@
     "@babel/preset-env": "^7.3.4",
     "@babel/runtime": "^7.3.4",
     "amazon-cognito-identity-js": "^3.0.10",
+    "aws-sdk": "^2.437.0",
     "commander": "^2.19.0",
     "config": "^3.0.1",
     "mustache": "^3.0.1",
