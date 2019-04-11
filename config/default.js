@@ -28,5 +28,30 @@ module.exports = {
   userPoolId: 'us-west-2_CGd9Wq136',
   userPoolAppClientId: '2u6s7pqkc1grq1qs464fsi82at',
   cognitoTokenFile: '.cognitoToken',
-  webidBaseUrl: 'https://cognito-idp.us-west-2.amazonaws.com'
+  webidBaseUrl: 'https://cognito-idp.us-west-2.amazonaws.com',
+  groups: {
+    alberta: 'University of Alberta',
+    boulder: 'University of Colorado, Boulder',
+    chicago: 'University of Chicago',
+    cornell: 'Cornell University',
+    dlc: 'Library of Congress',
+    duke: 'Duke University',
+    frick: 'Frick Art Reference Library',
+    harvard: 'Harvard University',
+    hrc: 'University of Texas, Austin, Harry Ransom Center',
+    ld4p: 'LD4P',
+    michigan: 'University of Michigan',
+    minnesota: 'University of Minnesota',
+    nlm: 'National Library of Medicine',
+    northwestern: 'Northwestern University',
+    pcc: 'PCC',
+    penn: 'University of Pennsylvania',
+    princeton: 'Princeton University',
+    stanford: 'Stanford University',
+    tamu: 'Texas A&M University',
+    ucdavis: 'University of California, Davis',
+    ucsd: 'University of California, San Diego',
+    washington: 'University of Washington',
+    yale: 'Yale University'
+  }
 }

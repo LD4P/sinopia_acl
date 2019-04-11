@@ -1,0 +1,24 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+DELETE WHERE { ?s ?p ?o };
+INSERT {
+    </#control> rdf:type acl:Authorization .
+    </#control> acl:mode acl:Read .
+    </#control> acl:mode acl:Write .
+    </#control> acl:mode acl:Control .
+    {{{adminAgents}}}
+    </#control> acl:accessTo </> .
+
+    </#write> rdf:type acl:Authorization .
+    </#write> acl:mode acl:Read .
+    </#write> acl:mode acl:Write .
+    </#write> acl:agentClass acl:AuthenticatedAgent .
+    </#write> acl:accessTo </> .
+
+    </#read> rdf:type acl:Authorization .
+    </#read> acl:mode acl:Read .
+    </#read> acl:agentClass foaf:Agent .
+    </#read> acl:accessTo </> .
+} WHERE {}
