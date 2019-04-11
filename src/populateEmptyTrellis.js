@@ -11,7 +11,9 @@ const renderTemplateFile = (templatePath, templateValues) => {
 
 console.log(`retrieving token from ${config.cognitoTokenFile}`)
 
-const token = fs.readFileSync(config.cognitoTokenFile, 'utf8').trim()
+const token = (fs.existsSync(config.cognitoTokenFile)) ?
+  fs.readFileSync(config.cognitoTokenFile, 'utf8').trim() :
+  ''
 
 console.log('creating root container')
 
