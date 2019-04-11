@@ -1,6 +1,6 @@
 {
   "name": "sinopia_acl",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Interact with WebACL data on Sinopia server",
   "bin": {
     "acl": "bin/acl",
@@ -34,10 +34,7 @@
   },
   "homepage": "https://github.com/LD4P/sinopia_acl#readme",
   "devDependencies": {
-    "@babel/core": "^7.3.4",
-    "@babel/node": "^7.2.2",
     "@babel/plugin-transform-runtime": "^7.4.0",
-    "@babel/preset-env": "^7.3.4",
     "eslint": "^5.16.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-jest": "^22.3.0",
@@ -46,6 +43,9 @@
     "jest": "^24.5.0"
   },
   "dependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.3.4",
     "@babel/runtime": "^7.3.4",
     "amazon-cognito-identity-js": "^3.0.10",
     "commander": "^2.19.0",
