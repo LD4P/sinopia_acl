@@ -54,6 +54,22 @@ jobs:
       - run:
           name: Run integration tests
           command: docker-compose run integration
+  register_image:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          key: dependency-cache-ci-{{ checksum "package.json" }}
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build & push docker image
+          # NOTE: the env variables holding docker credentials are stored in the CircleCI dashboard
+          command: |
+            docker build -t ld4p/sinopia_acl:latest .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push ld4p/sinopia_acl:latest
 
 workflows:
   version: 2
@@ -63,3 +79,10 @@ workflows:
       - build:
           requires:
             - dependencies
+      - register_image:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master

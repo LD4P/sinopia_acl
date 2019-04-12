@@ -76,3 +76,12 @@ $ docker-compose down
 
 - We will (eventually) create an npm package that could then be imported in the future by a GUI
     team members will need to be added to npm registry when we create npm package
+
+## Build and push image
+
+The CircleCI build is configured to perform these steps automatically on any successful build on the `master` branch. If you need to manually build and push an image, you can do this:
+
+```shell
+$ docker build -t ld4p/sinopia_acl:latest .
+$ docker push ld4p/sinopia_acl:latest
+```
