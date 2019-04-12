@@ -28,7 +28,8 @@ module.exports = {
   userPoolId: 'us-west-2_CGd9Wq136',
   userPoolAppClientId: '2u6s7pqkc1grq1qs464fsi82at',
   cognitoTokenFile: '.cognitoToken',
-  webidBaseUrl: 'https://cognito-idp.us-west-2.amazonaws.com',
+  awsRegion: 'us-west-2',
+  webidBaseUrl: 'https://cognito-idp.us-west-2.amazonaws.com', // no trailing slash
   groups: {
     alberta: 'University of Alberta',
     boulder: 'University of Colorado, Boulder',

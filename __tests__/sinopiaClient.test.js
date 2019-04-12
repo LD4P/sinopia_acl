@@ -12,7 +12,7 @@ describe('SinopiaClient', () => {
 
   describe('constructor()', () => {
     test('returns instance with configured group container URL', () => {
-      expect(client.groupContainerUrl).toEqual(`${config.baseUrl}/repository`)
+      expect(client.groupContainerUrl).toEqual(`${config.get('baseUrl')}/repository`)
     })
   })
   describe('createGroup()', () => {
@@ -23,7 +23,7 @@ describe('SinopiaClient', () => {
       client.requester = new RequestSuccessFake()
       const returned = client.createGroup(groupSlug)
       expect(consoleSpy).not.toHaveBeenCalled()
-      expect(returned).toEqual(`${config.baseUrl}/repository/${groupSlug}`)
+      expect(returned).toEqual(`${config.get('baseUrl')}/repository/${groupSlug}`)
 
     })
     test('logs an error when request is a 404', () => {

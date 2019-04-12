@@ -25,14 +25,25 @@ $ docker-compose up platformdata
 
 ## Testing
 
-To run the linter and unit tests:
+### Linter
+
+To run the linter:
 
 ```shell
 $ npm run eslint
-$ AUTH_TEST_PASS=foobar npm test
 ```
 
-Note that you will need to replace the value of `AUTH_TEST_PASS` with the actual password of the Cognito testing account we have created. For that, see the Sinopia dev `shared_configs` [repository](https://github.com/sul-dlss/shared_configs/tree/sinopia-dev) or ask a fellow Sinopia developer.
+### Unit tests
+
+To run unit tests:
+
+```shell
+$ AUTH_TEST_PASS=foobar AWS_PROFILE=barfoo npm test
+```
+
+Note that you will need to replace the value of
+-  `AUTH_TEST_PASS` with the actual password of the Cognito testing account we have created. For that, see the Sinopia dev `shared_configs` [repository](https://github.com/sul-dlss/shared_configs/tree/sinopia-dev) or ask a fellow Sinopia developer.
+- `AWS_PROFILE` with the value of your developer profile, e.g. 'dev' or 'my-id@sul-dlss-dev'
 
 ### Integration
 

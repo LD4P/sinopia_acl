@@ -3,7 +3,7 @@ import SimpleRequest from './simpleRequest'
 
 export default class SinopiaClient {
   constructor() {
-    this.groupContainerUrl = `${config.baseUrl}/repository`
+    this.groupContainerUrl = `${config.get('baseUrl')}/repository`
     this.requester = new SimpleRequest(this.groupContainerUrl)
   }
 

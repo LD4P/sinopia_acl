@@ -3,6 +3,7 @@ import fs from 'fs'
 import util from 'util' // for better error message
 import NodeFetch from 'node-fetch'
 import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js'
+import { SharedIniFileCredentials, CognitoIdentityServiceProvider, Config }  from 'aws-sdk'
 
 // Need fetch polyfill because amazon-cognito-identity-js uses the Fetch API.
 // See: https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js#setup
@@ -42,6 +43,71 @@ export default class AuthenticateClient {
       .catch((err) => {
         console.error(`ERROR: problem getting cognito accessToken: ${util.inspect(err)}`)
       })
+  }
+
+  /**
+   * return the webid for the cognito username in the pool
+   *
+   * throws an error (and console error) if there is an error getting the webid
+   */
+  async webId(cognitoUserName) {
+    try {
+      const userSub = await this.userSubFromCognitoPool(cognitoUserName)
+      return `${config.get('webidBaseUrl')}/${this.userPoolId}/${userSub}`
+    } catch(err) {
+      const errmsg = `ERROR: problem getting webid for ${cognitoUserName}: ${util.inspect(err)}`
+      console.error(errmsg)
+      throw errmsg
+    }
+  }
+
+  /**
+   * return the uuid that is the value of the AWS 'sub' UserAttribute for the cognito username in the pool
+   *
+   * throws an error if there is a problem getting the 'sub'
+   * @private
+   */
+  async userSubFromCognitoPool(cognitoUserName) {
+    if (process.env.AWS_PROFILE) {
+      process.env.AWS_SDK_LOAD_CONFIG = true // loads credential info from .aws/config as well as .aws/credentials
+      const credentials = new SharedIniFileCredentials({profile: process.env.AWS_PROFILE})
+      Config.credentials = credentials
+    }
+    // else env vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are sufficient
+
+    const cognito = new CognitoIdentityServiceProvider({
+      apiVersion: '2016-04-18',  // this value pertains something inside the AWS SDK npm package itself
+      region: config.get('awsRegion')
+    })
+
+    const desiredUserParams = {
+      UserPoolId: config.get('userPoolId'),
+      Username: cognitoUserName
+    }
+
+    return await cognito.adminGetUser(desiredUserParams).promise().then((data, err) => {
+      const sub = this.userSubFromUserData(data, err)
+      return sub
+    })
+  }
+
+  /**
+   * given user data object returned from adminGetUser call, return the uuid from the 'sub' attribute
+   #  throws an error if err is truthy (non-null, etc).
+   * @private
+   */
+  userSubFromUserData(userData, err) {
+    if (err) {
+      const errmsg = `ERROR: problem retrieving sub user attribute: ${util.inspect(err)}`
+      console.error(errmsg)
+      throw errmsg
+    }
+    const subAttribute = userData["UserAttributes"].find((element) => {
+      // each element is an object:
+      // { Name: 'sub', Value: '789dda7d-25c0-4a8f-9c62-b3116a97cc9b' }
+      return element["Name"] == 'sub'
+    })
+    return subAttribute["Value"]
   }
 
   /**
