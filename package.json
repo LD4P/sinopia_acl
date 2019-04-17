@@ -40,7 +40,7 @@
     "eslint-plugin-jest": "^22.3.0",
     "eslint-plugin-node": "^8.0.1",
     "eslint-plugin-security": "^1.4.0",
-    "jest": "^24.5.0"
+    "jest": "^24.7.1"
   },
   "dependencies": {
     "@babel/core": "^7.3.4",
