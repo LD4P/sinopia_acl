@@ -4,16 +4,15 @@
         acl:mode      acl:Read ;
         acl:mode      acl:Write ;
         acl:mode      acl:Control ;
-        acl:agent     <http://sinopia.io/users/webid4Admin1> ;
-        acl:agent     <http://sinopia.io/users/webid4Admin2> ;
+        acl:agent     <https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/789dda7d-25c0-4a8f-9c62-b3116a97cc9b> ;
+        acl:agent     <https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/56b84999-793f-4fa6-ad20-be8f62a5c2de> ;
         acl:accessTo  <http://platform:8080/test> .
 
 <http://platform:8080/#test-edit>
-        acl:mode      acl:Read ;
-        acl:mode      acl:Write ;
-        acl:agent     <http://sinopia.io/users/cmharlow> ;
-        acl:agent     <http://sinopia.io/users/suntzu> ;
-        acl:accessTo  <http://platform:8080/test> .
+        acl:mode        acl:Read ;
+        acl:mode        acl:Write ;
+        acl:agentClass  acl:AuthenticatedAgent ;
+        acl:accessTo    <http://platform:8080/test> .
 
 <http://platform:8080/#test-read>
         acl:mode        acl:Read ;

@@ -7,6 +7,7 @@
 //     "acl": "http://www.w3.org/ns/auth/acl#"
 
 import config from 'config'
+import AuthenticateClient from './authenticateClient'
 import N3 from 'n3'
 const { DataFactory } = N3
 const { namedNode } = DataFactory
@@ -66,7 +67,7 @@ export class WebAccessControl {
   // expect parseWac to have been called on desired WAC
   // returns true if triples in graph pass WAC validation
   // throws error otherwise;  expectation is that caller will do something user friendly and useful with the error message
-  validates() {
+  async validates() {
     if (this.n3store.countQuads(null, this.aclAccessToNode(), null) == 0)
       throw "invalid WAC: no http://www.w3.org/ns/auth/acl#accessTo predicate"
 
@@ -80,9 +81,19 @@ export class WebAccessControl {
         this.n3store.countQuads(null, this.aclAgentNode(), null) == 0)
       throw "invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids"
 
-    this.assertAdminControl()
+    await this.assertAdminControl()
 
     return true
+  }
+
+  async adminUserWebIds() {
+    // FIXME:  will remove these hardcoded values in github issue #63
+    // const username = config.get('testUser')  // no testUser in default.js
+    const username = 'sinopia-devs_client-tester'
+    const password = process.env.AUTH_TEST_PASS
+
+    const client = new AuthenticateClient(username, password)
+    return await Promise.all(config.get('adminUsers').map(adminUserName => client.webId(adminUserName)))
   }
 
   // expect parseWac to have been called on desired WAC
@@ -90,19 +101,20 @@ export class WebAccessControl {
   //   - there is no subject node with acl:Control
   //   - non-admin user has acl:Control permissions
   //   - any admin users from config file do NOT have acl:Control permissions
-  assertAdminControl() {
+  async assertAdminControl() {
     if (this.controlWebIds().length == 0)
       throw "invalid WAC: no webIds with control permission"
 
-    const adminUsers = config.get('adminUsers')
+    const adminWebIds = await this.adminUserWebIds()
+
     this.controlWebIds().every(controlWebId => {
-      if (!adminUsers.includes(controlWebId))
+      if (!adminWebIds.includes(controlWebId))
         throw `invalid WAC: non-admin webId has control permission: ${controlWebId}`
     })
 
-    // we need to do more checking if there are more adminUsers than controlWebIds
-    if (adminUsers.length > this.controlWebIds().length) {
-      adminUsers.forEach(webId => {
+    // we need to do more checking if there are more adminWebIds than controlWebIds
+    if (adminWebIds.length > this.controlWebIds().length) {
+      adminWebIds.forEach(webId => {
         if (!this.controlWebIds().includes(webId))
           throw `invalid WAC: admin does not have control permission: ${webId}`
       })
@@ -129,9 +141,9 @@ export class WebAccessControl {
   }
 
   // returns a string containing ttl format serialized RDF from graph store
-  asTtl() {
+  async asTtl() {
     try {
-      if (this.validates()) {
+      if (await this.validates()) {
         return N3.Writer().quadsToString(this.n3store.getQuads())
       }
     }
