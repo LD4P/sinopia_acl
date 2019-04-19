@@ -7,7 +7,7 @@ const { namedNode } = DataFactory
 const rootAclUrl = Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080/?ext=acl' : 'http://localhost:8080/?ext=acl'
 
 describe('WebAccessControl integration', () => {
-  test('base container ACLs can be parsed', () => {
+  test('root container ACLs can be parsed', () => {
     const rootAcls = request('GET', rootAclUrl)
     const rootNode = namedNode('http://platform:8080/#auth')
     const webAC = new WebAccessControl('', rootAcls.getBody('utf8'))

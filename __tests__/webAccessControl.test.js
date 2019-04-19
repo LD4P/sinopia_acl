@@ -23,18 +23,18 @@ describe('WebAccessControl', () => {
   })
 
   it('no need to call parseWac when wac string passed in constructor', () => {
-    const wac = new WebAccessControl('', fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
-    expect(wac.hasControlWebId('http://sinopia.io/users/cmharlow')).toBeTruthy()
+    const basicAuthWac = new WebAccessControl('', fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
+    expect(basicAuthWac.hasControlWebId('http://sinopia.io/users/cmharlow')).toBeTruthy()
     expect(myWac.hasControlWebId('http://example.com/nobody')).toBeFalsy()
   })
 
   describe('controlWebIds()', () => {
     it('lists the webids with control access', () => {
-      myWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_1Control1Write.ttl`).toString())
-      expect(myWac.controlWebIds()).toEqual(['http://sinopia.io/users/cmharlow'])
-
-      myWac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
-      expect(myWac.controlWebIds()).toEqual(['http://sinopia.io/users/cmharlow'])
+      const jwtWac = new WebAccessControl()
+      jwtWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_2Control.ttl`).toString())
+      expect(jwtWac.controlWebIds().length).toBe(2)
+      expect(jwtWac.controlWebIds()).toContain('https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/789dda7d-25c0-4a8f-9c62-b3116a97cc9b')
+      expect(jwtWac.controlWebIds()).toContain('https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/56b84999-793f-4fa6-ad20-be8f62a5c2de')
     })
 
     it('empty array when the wac has no control access (does not error)', () => {
@@ -81,22 +81,23 @@ describe('WebAccessControl', () => {
 
   describe('hasControlWebId()', () => {
     describe('ttl fixture', () => {
-      const otherWac = new WebAccessControl()
+      const jwtWac = new WebAccessControl()
+      const basicAuthWac = new WebAccessControl()
       beforeAll(() => {
-        myWac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
-        otherWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_1Control1Write.ttl`).toString())
+        basicAuthWac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
+        jwtWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_1Control.ttl`).toString())
       })
 
       it('true when user has control access', () => {
-        expect(myWac.hasControlWebId('http://sinopia.io/users/cmharlow')).toBeTruthy()
-        expect(otherWac.hasControlWebId('http://sinopia.io/users/cmharlow')).toBeTruthy()
+        expect(jwtWac.hasControlWebId('https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/789dda7d-25c0-4a8f-9c62-b3116a97cc9b')).toBeTruthy()
+        expect(basicAuthWac.hasControlWebId('http://sinopia.io/users/cmharlow')).toBeTruthy()
       })
       it('false when user has write, but not control, access', () => {
-        expect(otherWac.hasControlWebId('http://sinopia.io/users/suntzu')).toBeFalsy()
+        expect(jwtWac.hasControlWebId('https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/56b84999-793f-4fa6-ad20-be8f62a5c2de')).toBeFalsy()
       })
       it('false when user does not have control access', () => {
-        expect(myWac.hasControlWebId('http://example.com/nobody')).toBeFalsy()
-        expect(otherWac.hasControlWebId('http://example.com/nobody')).toBeFalsy()
+        expect(jwtWac.hasControlWebId('http://example.com/nobody')).toBeFalsy()
+        expect(basicAuthWac.hasControlWebId('http://example.com/nobody')).toBeFalsy()
       })
     })
 
@@ -116,21 +117,21 @@ describe('WebAccessControl', () => {
 
   describe('hasWriteWebId()', () => {
     describe('ttl fixture', () => {
-      const otherWac = new WebAccessControl()
+      const jwtWac = new WebAccessControl()
       beforeAll(() => {
         myWac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
-        otherWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_1Control1Write.ttl`).toString())
+        jwtWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_1Control1Write.ttl`).toString())
       })
 
       it('true when user has write (but not control) access', () => {
-        expect(otherWac.hasWriteWebId('http://sinopia.io/users/suntzu')).toBeTruthy()
+        expect(jwtWac.hasWriteWebId('http://sinopia.io/users/suntzu')).toBeTruthy()
       })
       it('false when user has control access', () => {
-        expect(otherWac.hasWriteWebId('http://sinopia.io/users/cmharlow')).toBeFalsy()
+        expect(jwtWac.hasWriteWebId('http://sinopia.io/users/cmharlow')).toBeFalsy()
       })
       it('false when user does not have write access', () => {
-        expect(otherWac.hasWriteWebId('http://example.com/nobody')).toBeFalsy()
         expect(myWac.hasWriteWebId('http://example.com/nobody')).toBeFalsy()
+        expect(jwtWac.hasWriteWebId('http://example.com/nobody')).toBeFalsy()
       })
     })
 
@@ -149,102 +150,105 @@ describe('WebAccessControl', () => {
   })
 
   describe('validates()', () => {
-    it('throws error when there is no acl:accessTo predicate', () => {
+    it('throws error when there is no acl:accessTo predicate', async () => {
+      expect.assertions(1)
       const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/noAccessToPredicate.ttl`).toString())
-      expect(() => {
-        wac.validates()
-      }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#accessTo predicate')
+      await expect(wac.validates()).rejects.toEqual('invalid WAC: no http://www.w3.org/ns/auth/acl#accessTo predicate')
     })
-    it('throws error when there is no acl:agentClass predicate', () => {
+    it('throws error when there is no acl:agentClass predicate', async () => {
+      expect.assertions(1)
       const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/noAgentClassPredicate.ttl`).toString())
-      expect(() => {
-        wac.validates()
-      }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#agentClass predicate')
+      await expect(wac.validates()).rejects.toEqual('invalid WAC: no http://www.w3.org/ns/auth/acl#agentClass predicate')
     })
-    it('throws error when there is no acl:mode acl:Read predicate-object pair', () => {
+    it('throws error when there is no acl:mode acl:Read predicate-object pair', async () => {
+      expect.assertions(1)
       const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/noAclReadIncluded.ttl`).toString())
-      expect(() => {
-        wac.validates()
-      }).toThrow('invalid WAC: no http://www.w3.org/ns/auth/acl#Read permissions')
+      await expect(wac.validates()).rejects.toEqual('invalid WAC: no http://www.w3.org/ns/auth/acl#Read permissions')
     })
-    it('throws error when a group has no acl:agent predicate', () => {
+    it('throws error when a group has no acl:agent predicate', async () => {
+      // NOTE: we are no longer doing WAC for group containers
+      expect.assertions(1)
       const wac = new WebAccessControl('stanford', fs.readFileSync(`${fixture_dir}/noGroupUsers.ttl`).toString())
-      expect(() => {
-        wac.validates()
-      }).toThrow('invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids')
+      await expect(wac.validates()).rejects.toEqual('invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids')
     })
-    it('throws error when group in constructor does not match object of acl:accessTo predicate', () => {
+    it('throws error when group in constructor does not match object of acl:accessTo predicate', async () => {
+      // NOTE: we are no longer doing WAC for group containers
+      expect.assertions(1)
       const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/stanfordGroupAcl_2Users.ttl`).toString())
-      expect(() => {
-        wac.validates()
-      }).toThrow('invalid WAC: acl:accessTo expected group "myGroup"; found "stanford"')
+      expect(wac.validates()).rejects.toEqual('invalid WAC: acl:accessTo expected group "myGroup"; found "stanford"')
     })
-    it('returns true when this.n3store root container contents pass validation', () => {
+    it('returns true when this.n3store root container contents pass validation', async () => {
+      expect.assertions(1)
       const wac = new WebAccessControl('myGroup', fs.readFileSync(`${fixture_dir}/rootAclValid.ttl`).toString())
-      expect(wac.validates()).toBeTruthy()
+      await expect(wac.validates()).resolves.toBeTruthy()
     })
-    it('returns true when this.n3store group container contents pass validation', () => {
-      const wac = new WebAccessControl('test', fs.readFileSync(`${fixture_dir}/testGroupAcl_2Control2Write.ttl`).toString())
-      expect(wac.validates()).toBeTruthy()
+    it('returns true when this.n3store group container contents pass validation', async () => {
+      // NOTE: we are no longer doing WAC for group containers
+      expect.assertions(1)
+      const wac = new WebAccessControl('test', fs.readFileSync(`${fixture_dir}/testGroupAcl_2Control.ttl`).toString())
+      await expect(wac.validates()).resolves.toBeTruthy()
     })
   })
 
   describe('assertAdminControl()', () => {
-    it('throws error if non-admin webId has acl:Control permission', () => {
+    it('throws error if non-admin webId has acl:Control permission', async () => {
+      expect.assertions(1)
+      const myWac = new WebAccessControl()
       myWac.parseWac(fs.readFileSync(`${fixture_dir}/cmharlowBaseAcl.ttl`).toString())
-      expect(() => {
-        myWac.assertAdminControl()
-      }).toThrow('invalid WAC: non-admin webId has control permission: http://sinopia.io/users/cmharlow')
+      await expect(myWac.assertAdminControl()).rejects.toEqual('invalid WAC: non-admin webId has control permission: http://sinopia.io/users/cmharlow')
     })
-    it('throws error if admin webId does NOT have acl:Control permission', () => {
-      myWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_1Control2Write.ttl`).toString())
-      expect(() => {
-        myWac.assertAdminControl()
-      }).toThrow('invalid WAC: admin does not have control permission: ')
+    it('throws error if admin webId does NOT have acl:Control permission', async () => {
+      expect.assertions(1)
+      const myWac = new WebAccessControl()
+      myWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_1Control.ttl`).toString())
+      await expect(myWac.assertAdminControl()).rejects.toEqual('invalid WAC: admin does not have control permission: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/56b84999-793f-4fa6-ad20-be8f62a5c2de')
     })
-    it('does not throw error if all admin users, and only admin users have acl:Control', () => {
-      myWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_2Control2Write.ttl`).toString())
-      expect(() => {
-        myWac.assertAdminControl()
-      }).not.toThrow()
+    it('does not throw error if all admin users, and only admin users have acl:Control', async () => {
+      expect.assertions(1)
+      const myWac = new WebAccessControl()
+      myWac.parseWac(fs.readFileSync(`${fixture_dir}/testGroupAcl_2Control.ttl`).toString())
+      // the following will fail if the promise rejects
+      await expect(myWac.assertAdminControl()).resolves.toBeUndefined()
     })
-    it('throws error if no control users', () => {
+    it('throws error if no control users', async () => {
+      expect.assertions(1)
+      const myWac = new WebAccessControl()
       myWac.parseWac(fs.readFileSync(`${fixture_dir}/noControl.ttl`).toString())
-      expect(() => {
-        myWac.assertAdminControl()
-      }).toThrow('invalid WAC: no webIds with control permission')
+      await expect(myWac.assertAdminControl()).rejects.toEqual('invalid WAC: no webIds with control permission')
     })
-    it('throws error when the wac is an empty string', () => {
+    it('throws error when the wac is an empty string', async () => {
+      expect.assertions(1)
       const wac = new WebAccessControl()
       wac.parseWac('')
-      expect(() => {
-        myWac.assertAdminControl()
-      }).toThrow('invalid WAC: no webIds with control permission')
+      await expect(myWac.assertAdminControl()).rejects.toEqual('invalid WAC: no webIds with control permission')
     })
-    it('throws error when no wac is parsed', () => {
-      expect(() => {
-        myWac.assertAdminControl()
-      }).toThrow('invalid WAC: no webIds with control permission')
+    it('throws error when no wac is parsed', async () => {
+      expect.assertions(1)
+      const myWac = new WebAccessControl()
+      // the following will fail if the promise resolves
+      await expect(myWac.assertAdminControl()).rejects.toBeTruthy()
     })
   })
 
   describe('asTtl()', () => {
-    it('writes console error when this.n3store does not pass validation', () => {
+    it('writes console error when this.n3store does not pass validation', async () => {
+      expect.assertions(1)
       const spy = jest.spyOn(global.console, 'error')
       const wac = new WebAccessControl('stanford', fs.readFileSync(`${fixture_dir}/noGroupUsers.ttl`).toString())
-      wac.asTtl()
+      await wac.asTtl()
       const origMsg = 'invalid WAC: group container requires http://www.w3.org/ns/auth/acl#agent webids'
       const expMsg = `Unable to create WebAccessControl ttl to send to Sinopia server due to ${origMsg}`
       expect(spy).toHaveBeenCalledWith(expMsg)
     })
-    it('returns a string containing ttl matching contents of this.n3store', () => {
-      const wac = new WebAccessControl('test', fs.readFileSync(`${fixture_dir}/testGroupAcl_2Control2Write.ttl`).toString())
-      const outputTtlFile = wac.asTtl()
+    it('returns a string containing ttl matching contents of this.n3store', async () => {
+      expect.assertions(16)
+      const wac = new WebAccessControl('test', fs.readFileSync(`${fixture_dir}/testGroupAcl_2Control.ttl`).toString())
+      const outputTtlFile = await wac.asTtl()
       const myStore = N3.Store()
       myStore.addQuads(N3.Parser().parse(outputTtlFile))
 
       expect(myStore.countQuads()).toEqual(wac.n3store.countQuads())
-      expect(myStore.countQuads()).toBe(14)
+      expect(myStore.countQuads()).toBe(13)
 
       const testGroupNode = namedNode('http://platform:8080/test')
       const controlNode = namedNode('http://platform:8080/#test-control')
@@ -254,15 +258,14 @@ describe('WebAccessControl', () => {
       expect(myStore.countQuads(controlNode, wac.aclModeNode(), wac.aclReadNode())).toBe(1)
       expect(myStore.countQuads(controlNode, wac.aclModeNode(), wac.aclWriteNode())).toBe(1)
       expect(myStore.countQuads(controlNode, wac.aclModeNode(), wac.aclControlNode())).toBe(1)
-      expect(myStore.countQuads(controlNode, wac.aclAgentNode(), namedNode('http://sinopia.io/users/webid4Admin1'))).toBe(1)
-      expect(myStore.countQuads(controlNode, wac.aclAgentNode(), namedNode('http://sinopia.io/users/webid4Admin2'))).toBe(1)
+      expect(myStore.countQuads(controlNode, wac.aclAgentNode(), namedNode('https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/789dda7d-25c0-4a8f-9c62-b3116a97cc9b'))).toBe(1)
+      expect(myStore.countQuads(controlNode, wac.aclAgentNode(), namedNode('https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/56b84999-793f-4fa6-ad20-be8f62a5c2de'))).toBe(1)
       expect(myStore.countQuads(controlNode, wac.aclAccessToNode(), testGroupNode)).toBe(1)
 
       expect(myStore.countQuads(editNode, wac.aclModeNode(), wac.aclReadNode())).toBe(1)
       expect(myStore.countQuads(editNode, wac.aclModeNode(), wac.aclWriteNode())).toBe(1)
       expect(myStore.countQuads(editNode, wac.aclModeNode(), wac.aclControlNode())).toBe(0)
-      expect(myStore.countQuads(editNode, wac.aclAgentNode(), namedNode('http://sinopia.io/users/cmharlow'))).toBe(1)
-      expect(myStore.countQuads(editNode, wac.aclAgentNode(), namedNode('http://sinopia.io/users/suntzu'))).toBe(1)
+      expect(myStore.countQuads(editNode, wac.aclAgentClassNode(), namedNode('http://www.w3.org/ns/auth/acl#AuthenticatedAgent'))).toBe(1)
       expect(myStore.countQuads(editNode, wac.aclAccessToNode(), testGroupNode)).toBe(1)
 
       expect(myStore.countQuads(readOnlyNode, wac.aclModeNode(), wac.aclReadNode())).toBe(1)
