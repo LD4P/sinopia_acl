@@ -4,7 +4,7 @@ import fs from 'fs'
 
 describe('AuthenticateClient', () => {
   const username = config.get('testUser')
-  const password = process.env.AUTH_TEST_PASS
+  const password = config.get('cognitoAdminPassword')
 
   describe('constructor()', () => {
     describe('username and password validation', () => {
@@ -157,7 +157,7 @@ describe('AuthenticateClient', () => {
     describe('accessTokenPromise()', () => {
       const client = new AuthenticateClient(username, password)
 
-      test('gets accessToken ', () => {
+      test('gets accessToken', async () => {
         return client.accessTokenPromise()
           .then((jwt) => {
             expect(jwt).toBeTruthy()
@@ -178,11 +178,11 @@ describe('AuthenticateClient', () => {
 
   describe('webId()', () => {
     const client = new AuthenticateClient(username, password)
-    const desiredUser = config.get('testUser')
+    const desiredUser = username
 
     test('returns valid webId', async () => {
       const webid = await client.webId(desiredUser)
-      const startsWithRegex = new RegExp(`^${config.get('webidBaseUrl')}/${config.get('userPoolId')}/`)
+      const startsWithRegex = new RegExp(`^https://${client.cognitoDomain}/${client.userPoolId}/`)
       expect(webid).toMatch(startsWithRegex)
       const endsWithUuidRegex = new RegExp("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
       expect(webid).toMatch(endsWithUuidRegex)

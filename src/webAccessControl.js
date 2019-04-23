@@ -87,13 +87,8 @@ export class WebAccessControl {
   }
 
   async adminUserWebIds() {
-    // FIXME:  will remove these hardcoded values in github issue #63
-    // const username = config.get('testUser')  // no testUser in default.js
-    const username = 'sinopia-devs_client-tester'
-    const password = process.env.AUTH_TEST_PASS
-
-    const client = new AuthenticateClient(username, password)
-    return await Promise.all(config.get('adminUsers').map(adminUserName => client.webId(adminUserName)))
+    const client = new AuthenticateClient(config.get('cognitoAdminUser'), config.get('cognitoAdminPassword'))
+    return await Promise.all(config.get('adminUsers').map(adminName => client.webId(adminName)))
   }
 
   // expect parseWac to have been called on desired WAC
