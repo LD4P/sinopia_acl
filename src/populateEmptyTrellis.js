@@ -1,8 +1,22 @@
-// NOTE:  script assumes
-//  1) there is a valid AWS Cognito token available.
-//  You can populate this file via `bin/authenticate`, at which point you will
-//  be prompted for a Sinopia Cognito pool username and password.
-//  2) AWS_PROFILE and AUTH_TEST_PASS will be set -- these allow us to use authenticateClient.webId(username)
+// NOTE:  script needs AWS Cognito user pool account with sufficient permissions to get info for a diff user
+//
+//  these env vars must be set:
+//    COGNITO_ADMIN_USER
+//    COGNITO_ADMIN_PASSWORD
+//  and either:
+//     AWS_PROFILE
+//   or
+//     AWS_ACCESS_KEY_ID and
+//     AWS_SECRET_ACCESS_KEY
+//
+//  also
+//    TRELLIS_BASE_URL
+//
+//  if not being run for AWS Cognito development pool, authenticateClient needs these:
+//    COGNITO_USER_POOL_ID
+//    COGNITO_CLIENT_ID
+//    AWS_REGION
+//    AWS_COGNITO_DOMAIN
 
 import config from 'config'
 import fs from 'fs'
@@ -13,24 +27,23 @@ import AuthenticateClient from './authenticateClient'
 
 const baseUrl = Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080' : config.get('baseUrl')
 
-// FIXME: see github issue #63
-//  eventually, we will have adminusername and adminpassword from ENV vars so we should
-//  obtain our own cognito token.
-//  we will also get appropriate AWS_ACCESS_KEY_ID and  AWS_SECRET_ACCESS_KEY, which should allow us to
-//  use AWS SDK to get webid from username
+const client = new AuthenticateClient(config.get('cognitoAdminUser'), config.get('cognitoAdminPassword'))
+async function getToken() {
+  await client.cognitoTokenToFile()
+}
 
+getToken()
+
+const cogTokenFile = config.get('cognitoTokenFile')
+const token = (fs.existsSync(cogTokenFile)) ?
+  fs.readFileSync(cogTokenFile, 'utf8').trim() :
+  ''
 
 const renderTemplateFile = (templatePath, templateValues) => {
   const template = fs.readFileSync(templatePath, 'utf8')
   return Mustache.render(template, templateValues)
 }
 
-const cogTokenFile = config.get('cognitoTokenFile')
-console.log(`retrieving token from ${cogTokenFile}`)
-
-const token = (fs.existsSync(cogTokenFile)) ?
-  fs.readFileSync(cogTokenFile, 'utf8').trim() :
-  ''
 
 console.log('creating root container')
 
@@ -43,7 +56,8 @@ request('PATCH', baseUrl, {
 })
 
 // Pause between requests to give Trellis time to persist data
-sleep.sleep(1)
+sleep.msleep(500)
+
 
 console.log('creating repository container')
 
@@ -68,6 +82,7 @@ if (response.statusCode == 404) {
     body: fs.readFileSync('./fixtureWAC/repositoryContainer.sparql', 'utf8')
   })
 }
+
 
 Object.entries(config.get('groups')).forEach(([slug, label]) => {
   console.log(`creating ${slug} group container`)
@@ -99,15 +114,9 @@ Object.entries(config.get('groups')).forEach(([slug, label]) => {
   }
 })
 
+
 // Do ACLs last, i.e., *after* creating containers, else we require a valid JWT for the above operations
 console.log('setting root container ACLs')
-
-// FIXME:  will remove these hardcoded values in github issue #63
-// const username = config.get('testUser')  // no testUser in default.js
-const username = 'sinopia-devs_client-tester'
-const password = process.env.AUTH_TEST_PASS
-
-const client = new AuthenticateClient(username, password)
 
 async function adminUserWebids() {
   return await Promise.all(config.get('adminUsers').map(adminUserName => client.webId(adminUserName)))
