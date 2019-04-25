@@ -4,24 +4,74 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/1abbbb1e7eef5ad1a9a5/maintainability)](https://codeclimate.com/github/LD4P/sinopia_acl/maintainability)
 
 # sinopia_acl
-node.js based code to interact with WebACL data on Sinopia server
+node.js based code to interact with WebACL data on Sinopia server.
 
 WebACL (https://www.w3.org/wiki/WebAccessControl) is how we will gate access to various LDP containers on the server.
 
 The "copy of record" of group/webID mappings will be in the Sinopia server.
 
+## Prerequisites
+
+You will need to install the npm packages before running any of the code (which also requires that the npm package manager itself is installed)
+
+```shell
+$ npm install
+```
+
 ## Command Line
 
-This code will have a simple CLI for Sinopia Server admins to use, to be developed in a future work cycle (as of April, 2019).
+This code may have a simple CLI for Sinopia Server admins to use to be developed in a future work cycle (as of April, 2019).
 
-It will expect the admin user to have a valid JWT in a .cognitoToken file (to allow Trellis to know the admin user has permisssions to make the changes to WebACL data). You can populate this file via `bin/authenticate`, at which point you will be prompted for your Sinopia Cognito pool username and password.
+### Spinning up Trellis LDP Server
 
-To spin up Trellis and its dependencies with the Sinopia container structure (root, repository, and group containers) and ACLs (declared on root container) pre-created, you can do using the `platformdata` docker-compose service:
+To spin up Trellis and its dependencies with the Sinopia container structure (root, repository, and group containers) and ACLs (declared on root container) pre-created, use the `platformdata` docker-compose service:
 
 ```shell
 # Add -d flag to run containers in background
 $ docker-compose up platformdata
 ```
+
+To spin up Trellis and its dependencies without the container structure and ACLs pre-created, use the `platform` docker-compose service:
+
+```shell
+# Add -d flag to run containers in background
+$ docker-compose up platform
+```
+
+### Migration Script to Populate existing Trellis LDP Server with Sinopia container structure and ACLs
+
+There is a script to populate a running Trellis LDP server with the Sinopia container structure (root, repository, and group containers) and ACLs (declared on root container).
+
+This script can be run repeatedly
+ - it copes with containers if they already exist
+ - it will overwrite the existing ACL for the root container (requires COGNITO_ADMIN_USER to already be on existing root ACL, tho!)
+
+#### Requirements:
+
+- an AWS Cognito Sinopia user pool account with sufficient permissions to get info about a different user in the pool.
+
+These env vars must be set:
+- COGNITO_ADMIN_USER  (defaults to sinopia-devs_client-tester)
+- COGNITO_ADMIN_PASSWORD
+- one of:
+    - AWS_PROFILE
+   or
+    - AWS_ACCESS_KEY_ID and
+    - AWS_SECRET_ACCESS_KEY
+- TRELLIS_BASE_URL  (defaults to http://localhost:8080)
+
+If the desired AWS Cognito pool is not the Cognito Sinopia development pool, these env vars are also needed:
+- COGNITO_USER_POOL_ID
+- COGNITO_CLIENT_ID
+- AWS_REGION
+- AWS_COGNITO_DOMAIN
+
+#### Example:
+
+```shell
+$ COGNITO_ADMIN_USER=hoohah COGNITO_ADMIN_PASSWORD=foobar AWS_PROFILE=barfoo bin/migrate
+```
+
 
 ## Testing
 
@@ -38,11 +88,11 @@ $ npm run eslint
 To run unit tests:
 
 ```shell
-$ AUTH_TEST_PASS=foobar AWS_PROFILE=barfoo npm test
+$ COGNITO_ADMIN_PASSWORD=foobar AWS_PROFILE=barfoo npm test
 ```
 
 Note that you will need to replace the value of
--  `AUTH_TEST_PASS` with the actual password of the Cognito testing account we have created. For that, see the Sinopia dev `shared_configs` [repository](https://github.com/sul-dlss/shared_configs/tree/sinopia-dev) or ask a fellow Sinopia developer.
+-  `COGNITO_ADMIN_PASSWORD` with the actual password of the Cognito testing account we have created. For that, see the Sinopia dev `shared_configs` [repository](https://github.com/sul-dlss/shared_configs/tree/sinopia-dev) or ask a fellow Sinopia developer.
 - `AWS_PROFILE` with the value of your developer profile, e.g. 'dev' or 'my-id@sul-dlss-dev'
 
 ### Integration

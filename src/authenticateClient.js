@@ -16,7 +16,9 @@ export default class AuthenticateClient {
     // Extracting these to methods makes for easier testing
     this.userPoolId = this.userPoolIdFromConfig()
     this.appClientId = this.appClientIdFromConfig()
-    this.cognitoTokenFile = this.cognitoTokenFileFromConfig()
+    this.cognitoTokenFile = config.get('cognitoTokenFile')
+    this.cognitoDomain = config.get('cognitoDomain')
+    this.awsRegion = config.get('awsRegion')
 
     if (!this.username || !this.password) {
       const errmsg = "ERROR: username and password are required (usually passed at command line)"
@@ -53,7 +55,7 @@ export default class AuthenticateClient {
   async webId(cognitoUserName) {
     try {
       const userSub = await this.userSubFromCognitoPool(cognitoUserName)
-      return `${config.get('webidBaseUrl')}/${this.userPoolId}/${userSub}`
+      return `https://${this.cognitoDomain}/${this.userPoolId}/${userSub}`
     } catch(err) {
       const errmsg = `ERROR: problem getting webid for ${cognitoUserName}: ${util.inspect(err)}`
       console.error(errmsg)
@@ -68,20 +70,21 @@ export default class AuthenticateClient {
    * @private
    */
   async userSubFromCognitoPool(cognitoUserName) {
-    if (process.env.AWS_PROFILE) {
+    const awsProfile = config.get('awsProfile')
+    if (awsProfile) {
       process.env.AWS_SDK_LOAD_CONFIG = true // loads credential info from .aws/config as well as .aws/credentials
-      const credentials = new SharedIniFileCredentials({profile: process.env.AWS_PROFILE})
+      const credentials = new SharedIniFileCredentials({profile: awsProfile})
       Config.credentials = credentials
     }
-    // else env vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are sufficient
+    // else env vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are sufficient (e.g. circleci, AWS containers)
 
     const cognito = new CognitoIdentityServiceProvider({
       apiVersion: '2016-04-18',  // this value pertains something inside the AWS SDK npm package itself
-      region: config.get('awsRegion')
+      region: this.awsRegion
     })
 
     const desiredUserParams = {
-      UserPoolId: config.get('userPoolId'),
+      UserPoolId: this.userPoolId,
       Username: cognitoUserName
     }
 
@@ -146,13 +149,6 @@ export default class AuthenticateClient {
    */
   appClientIdFromConfig() {
     return config.get('userPoolAppClientId')
-  }
-
-  /**
-   * @private
-   */
-  cognitoTokenFileFromConfig() {
-    return config.get('cognitoTokenFile')
   }
 
   /**
