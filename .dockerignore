@@ -1,5 +1,8 @@
-npm-debug.log
-Dockerfile
-.dockerignore
-.node-version
 .cognitoToken
+.dockerignore
+.env
+.git
+.node-version
+Dockerfile
+coverage
+npm-debug.log

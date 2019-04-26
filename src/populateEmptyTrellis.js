@@ -26,24 +26,28 @@ import sleep from 'sleep'
 import AuthenticateClient from './authenticateClient'
 
 const baseUrl = Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080' : config.get('baseUrl')
-
 const client = new AuthenticateClient(config.get('cognitoAdminUser'), config.get('cognitoAdminPassword'))
-async function getToken() {
-  await client.cognitoTokenToFile()
-}
+const templateDir = 'fixtures/resourceTemplates/'
+const templateContainerUrl = `${baseUrl}/repository/${config.get('resourceTemplateGroup')}`
 
-getToken()
+console.log('retrieving Cognito token')
 
-const cogTokenFile = config.get('cognitoTokenFile')
-const token = (fs.existsSync(cogTokenFile)) ?
-  fs.readFileSync(cogTokenFile, 'utf8').trim() :
+client.cognitoTokenToFile()
+  .then(() => {
+    return null
+  })
+  .catch(error => {
+    console.error(`could not retrieve token: ${error}`)
+  })
+
+const token = (fs.existsSync(config.get('cognitoTokenFile'))) ?
+  fs.readFileSync(config.get('cognitoTokenFile'), 'utf8').trim() :
   ''
 
 const renderTemplateFile = (templatePath, templateValues) => {
   const template = fs.readFileSync(templatePath, 'utf8')
   return Mustache.render(template, templateValues)
 }
-
 
 console.log('creating root container')
 
@@ -52,12 +56,11 @@ request('PATCH', baseUrl, {
     'Content-Type': 'application/sparql-update',
     'Authorization': `Bearer ${token}`
   },
-  body: fs.readFileSync('./fixtureWAC/rootContainer.sparql', 'utf8')
+  body: fs.readFileSync('./fixtures/rootContainer.sparql', 'utf8')
 })
 
 // Pause between requests to give Trellis time to persist data
 sleep.msleep(500)
-
 
 console.log('creating repository container')
 
@@ -71,7 +74,7 @@ if (response.statusCode == 404) {
       'Slug': 'repository',
       'Authorization': `Bearer ${token}`
     },
-    body: fs.readFileSync('./fixtureWAC/repositoryContainer.ttl')
+    body: fs.readFileSync('./fixtures/repositoryContainer.ttl')
   })
 } else {
   request('PATCH', `${baseUrl}/repository`, {
@@ -79,7 +82,7 @@ if (response.statusCode == 404) {
       'Content-Type': 'application/sparql-update',
       'Authorization': `Bearer ${token}`
     },
-    body: fs.readFileSync('./fixtureWAC/repositoryContainer.sparql', 'utf8')
+    body: fs.readFileSync('./fixtures/repositoryContainer.sparql', 'utf8')
   })
 }
 
@@ -97,7 +100,7 @@ Object.entries(config.get('groups')).forEach(([slug, label]) => {
         'Slug': slug,
         'Authorization': `Bearer ${token}`
       },
-      body: renderTemplateFile('./fixtureWAC/groupContainer.ttl.mustache', {
+      body: renderTemplateFile('./fixtures/groupContainer.ttl.mustache', {
         label: label
       })
     })
@@ -107,22 +110,40 @@ Object.entries(config.get('groups')).forEach(([slug, label]) => {
         'Content-Type': 'application/sparql-update',
         'Authorization': `Bearer ${token}`
       },
-      body: renderTemplateFile('./fixtureWAC/groupContainer.sparql.mustache', {
+      body: renderTemplateFile('./fixtures/groupContainer.sparql.mustache', {
         label: label
       })
     })
   }
 })
 
+// Load list of template files
+fs.readdirSync(templateDir).forEach(template => {
+  // Without second arg, a buffer (vs. a string) is returned
+  let templateJson = fs.readFileSync(`${templateDir}/${template}`, 'utf8')
+  let identifier = JSON.parse(templateJson).id
+
+  console.log(`creating resource template: ${templateContainerUrl}/${identifier} `)
+
+  request('POST', templateContainerUrl, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Link': '<http://www.w3.org/ns/ldp#NonRDFSource>; rel="type"',
+      'Slug': identifier,
+      'Authorization': `Bearer ${token}`
+    },
+    body: templateJson
+  })
+})
 
 // Do ACLs last, i.e., *after* creating containers, else we require a valid JWT for the above operations
 console.log('setting root container ACLs')
 
-async function adminUserWebids() {
+const adminUserWebids = async () => {
   return await Promise.all(config.get('adminUsers').map(adminUserName => client.webId(adminUserName)))
 }
 
-async function doRootAclRequest() {
+const doRootAclRequest = async () => {
   const adminWebids = await adminUserWebids()
   request('PATCH', `${baseUrl}/?ext=acl`, {
     headers: {
@@ -130,7 +151,7 @@ async function doRootAclRequest() {
       'Authorization': `Bearer ${token}`
     },
     body: renderTemplateFile(
-      './fixtureWAC/rootWAC.sparql.mustache',
+      './fixtures/rootWAC.sparql.mustache',
       {
         adminAgents: adminWebids.map(webid => {
           return `    </#control> acl:agent <${webid}> .`

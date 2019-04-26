@@ -19,6 +19,7 @@ module.exports = {
   awsProfile: process.env.AWS_PROFILE || '',
   userPoolId: process.env.COGNITO_USER_POOL_ID || 'us-west-2_CGd9Wq136',
   userPoolAppClientId: process.env.COGNITO_CLIENT_ID || '2u6s7pqkc1grq1qs464fsi82at',
+  resourceTemplateGroup: process.env.SINOPIA_GROUP || 'ld4p',
   cognitoTokenFile: '.cognitoToken',
   cognitoDomain: process.env.AWS_COGNITO_DOMAIN || defer(function () { return `cognito-idp.${this.awsRegion}.amazonaws.com` }), // no trailing slash
   groups: {
