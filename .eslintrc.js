@@ -60,6 +60,15 @@ module.exports = {
       }
     },
     {
+      // Allow unused variables because this is how babel and dotenv get along
+      files: [
+        'src/backupUsers.js'
+      ],
+      rules: {
+        'no-unused-vars': 'off',
+      }
+    },
+    {
       // Allow explicit boolean casts in integration tests to permit running inside and outside containerland
       files: [
         '__tests__/**/*.integration.js',

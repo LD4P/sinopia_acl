@@ -1,4 +1,7 @@
 {
+  "plugins": [["babel-plugin-dotenv", {
+    "replacedModuleName": "babel-dotenv"
+  }]],
   "presets": [
     "@babel/preset-env"
   ],

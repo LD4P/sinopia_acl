@@ -19,6 +19,15 @@ services:
     command: dockerize -wait tcp://platform:8080 -timeout 3m bin/migrate
     depends_on:
       - platform
+  backupusers:
+    build:
+      context: .
+    environment:
+      TRELLIS_BASE_URL: http://platform:8080
+      AWS_COGNITO_REGION: ${AWS_COGNITO_REGION:-us-west-2}
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}" # add to .env file (DO NOT CHECK IN)
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}" # add to .env file (DO NOT CHECK IN)
+    command: bin/backup_users
   platform:
     image: ld4p/trellis-ext-db:latest
     environment:

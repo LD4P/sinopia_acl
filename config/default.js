@@ -1,9 +1,14 @@
+// Allow populating ENV variables using not-check-in .env file (for secrets)
+require('dotenv').config()
+
 // This allows parts of the config to refer to others
 const defer = require('config/defer').deferConfig
 
 module.exports = {
   baseUrl: process.env.TRELLIS_BASE_URL || 'http://localhost:8080',
   awsRegion: process.env.AWS_REGION || 'us-west-2',
+  awsAccessKey: process.env.AWS_ACCESS_KEY_ID || '',
+  awsAccessSecret: process.env.AWS_SECRET_ACCESS_KEY || '',
   // usernames from the development Sinopia Cognito user pool (same names used in stage and prod Cogntio pools)
   adminUsers: [
     'jgreben',

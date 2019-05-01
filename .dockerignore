@@ -1,5 +1,6 @@
 npm-debug.log
 Dockerfile
 .dockerignore
+.env
 .node-version
 .cognitoToken
