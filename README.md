@@ -31,6 +31,8 @@ To spin up Trellis and its dependencies with the Sinopia container structure (ro
 $ docker-compose up platformdata
 ```
 
+**NOTE**: In order for the above to work, you will need to set `COGNITO_ADMIN_PASSWORD`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` in a file named `.env` in the sinopia_acl root.
+
 To spin up Trellis and its dependencies without the container structure and ACLs pre-created, use the `platform` docker-compose service:
 
 ```shell
@@ -130,13 +132,11 @@ $ docker-compose down
 
 - In an ideal world, we would validate any WebACL to be written to the server.  However, here does not seem to be an existing WebACL validation package -- JSON schema, npm module, RDF shapes, whatever.
 
-- We will separate out the CLI from the WebACL manipulation and the interaction with the Sinopia server.
-    There are npm packages for CLI that we can leverage, such as cli, minimist, ...
+- We separate out the CLI from the WebACL manipulation and the interaction with the Sinopia server.
 
 - We will see if we can use npm jsonacl https://www.npmjs.com/package/jsonacl for node ACL manipulation, or something similar
 
-- We will (eventually) create an npm package that could then be imported in the future by a GUI
-    team members will need to be added to npm registry when we create npm package
+- We publish an npm package that can be imported by a GUI
 
 ## Build and push image
 
