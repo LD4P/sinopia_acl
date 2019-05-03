@@ -26,24 +26,26 @@ import sleep from 'sleep'
 import AuthenticateClient from './authenticateClient'
 
 const baseUrl = Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080' : config.get('baseUrl')
-
 const client = new AuthenticateClient(config.get('cognitoAdminUser'), config.get('cognitoAdminPassword'))
-async function getToken() {
-  await client.cognitoTokenToFile()
-}
 
-getToken()
+console.log('retrieving Cognito token')
 
-const cogTokenFile = config.get('cognitoTokenFile')
-const token = (fs.existsSync(cogTokenFile)) ?
-  fs.readFileSync(cogTokenFile, 'utf8').trim() :
+client.cognitoTokenToFile()
+  .then(() => {
+    return null
+  })
+  .catch(error => {
+    console.error(`could not retrieve token: ${error}`)
+  })
+
+const token = (fs.existsSync(config.get('cognitoTokenFile'))) ?
+  fs.readFileSync(config.get('cognitoTokenFile'), 'utf8').trim() :
   ''
 
 const renderTemplateFile = (templatePath, templateValues) => {
   const template = fs.readFileSync(templatePath, 'utf8')
   return Mustache.render(template, templateValues)
 }
-
 
 console.log('creating root container')
 
@@ -57,7 +59,6 @@ request('PATCH', baseUrl, {
 
 // Pause between requests to give Trellis time to persist data
 sleep.msleep(500)
-
 
 console.log('creating repository container')
 
@@ -114,15 +115,14 @@ Object.entries(config.get('groups')).forEach(([slug, label]) => {
   }
 })
 
-
 // Do ACLs last, i.e., *after* creating containers, else we require a valid JWT for the above operations
 console.log('setting root container ACLs')
 
-async function adminUserWebids() {
+const adminUserWebids = async () => {
   return await Promise.all(config.get('adminUsers').map(adminUserName => client.webId(adminUserName)))
 }
 
-async function doRootAclRequest() {
+const doRootAclRequest = async () => {
   const adminWebids = await adminUserWebids()
   request('PATCH', `${baseUrl}/?ext=acl`, {
     headers: {
