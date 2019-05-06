@@ -42,4 +42,8 @@ export default class CLI {
     // return client.removeUserFromGroup(userUri, groupSlug)
     console.log(`not implemented yet. args: ${userUri}, ${groupSlug}`)
   }
+
+  removeResource(group, id) {
+    return this.client.removeResource(group, id)
+  }
 }

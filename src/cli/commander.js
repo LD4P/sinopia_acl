@@ -73,6 +73,19 @@ commander
     }
   })
 
+commander
+  .command('delete <group> <id>')
+  .description('Remove a resource from a group container')
+  .action((group, id) => {
+    try{
+      cli.removeResource(group, id)
+      process.exit(0)
+    } catch(error) {
+      console.error(`Error deleting resource: ${error}`)
+      process.exit(1)
+    }
+  })
+
 // Parse command-line args and invoke specified command
 commander.parse(process.argv)
 

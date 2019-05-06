@@ -36,4 +36,27 @@ export default class SinopiaClient {
       return null
     }
   }
+
+  removeResource(group, slug) {
+    this.resourceUrl = `${this.trellisBaseUrl}/repository/${group}/${slug}`
+    this.requester = new SimpleRequest(this.resourceUrl)
+    try {
+      const response = this.requester.delete()
+
+      switch(response.statusCode) {
+        case 204:
+          console.log(`resource with id '${slug}' successfully removed`)
+          return `${slug}`
+        case 404:
+          throw `resourse with id '${slug}' does not exist`
+        case 410:
+          throw `resource with id '${slug}' already removed`
+        default:
+          throw `(${response.statusCode}) ${response.body.toString()}`
+      }
+    } catch(error) {
+      console.error(`error deleting resource: ${error}`)
+      return null
+    }
+  }
 }

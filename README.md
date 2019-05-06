@@ -22,6 +22,13 @@ $ npm install
 
 This code may have a simple CLI for Sinopia Server admins to use to be developed in a future work cycle (as of April, 2019).
 
+#### Example of CLI utility for admins:
+
+e.g. This will delete a resource with id `resourceTemplate:bf2:Note` from the `repository/ld4p` group container: 
+```shell
+$  npx babel-node src/cli/commander.js delete ld4p resourceTemplate:bf2:Note
+```
+
 ### Spinning up Trellis LDP Server
 
 To spin up Trellis and its dependencies with the Sinopia container structure (root, repository, and group containers) and ACLs (declared on root container) pre-created, use the `platformdata` docker-compose service:

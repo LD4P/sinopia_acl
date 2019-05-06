@@ -11,4 +11,8 @@ export default class SimpleRequest {
       body: body
     })
   }
+
+  delete() {
+    return request('DELETE', this.baseUrl)
+  }
 }
