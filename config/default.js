@@ -25,6 +25,7 @@ module.exports = {
   userPoolAppClientId: process.env.COGNITO_CLIENT_ID || '2u6s7pqkc1grq1qs464fsi82at',
   cognitoTokenFile: '.cognitoToken',
   cognitoDomain: process.env.AWS_COGNITO_DOMAIN || defer(function () { return `cognito-idp.${this.awsRegion}.amazonaws.com` }), // no trailing slash
+  // WARNING: Config.groupsInSinopia in the sinopia_editor codebase *must* be kept in sync with this group list for now
   groups: {
     alberta: 'University of Alberta',
     boulder: 'University of Colorado, Boulder',
