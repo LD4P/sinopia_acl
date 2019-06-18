@@ -11,7 +11,11 @@ module.exports = {
     'michelle',
     'mjgiarlo',
     'ndushay',
-    'suntzu'
+    'suntzu',
+    'jcoyne',
+    'petucket',
+    'jlittman',
+    'amcollie'
   ],
   // admin username for getting webids given usernames;  explicit values here are from development Sinopia Cognito user pool
   cognitoAdminUser: process.env.COGNITO_ADMIN_USER || 'sinopia-devs_client-tester',
