@@ -73,7 +73,36 @@ If the desired AWS Cognito pool is not the Cognito Sinopia development pool, the
 ```shell
 $ COGNITO_ADMIN_USER=hoohah COGNITO_ADMIN_PASSWORD=foobar AWS_PROFILE=barfoo bin/migrate
 ```
+### Migration Script to Populate existing Trellis LDP Server with Sinopia Starter Templates
 
+There is a script to populate a running Trellis LDP with starter resource templates in a chosen container after a sucessful 
+run of  the `migrate` script that creates the initial container structure. This script can also be run repeatedly. Any public
+github repository and branch can be used as the source of resoure template data. The source files should be resource templates
+that are wrapped in a Profile object. Add or modify the `config/defult.js` with the following to set the desired github repo: 
+
+The final containing directory should be the `templateFolder` key:
+```
+  templateOrg: 'lcnetdev',
+  templateRepo: 'verso',
+  templateBranch: 'master',
+  templatePath: 'data',
+  templateFolder: 'profiles',
+```
+
+If the files are several levels deep, specify that in the `templatePath`:
+```
+  templateOrg: 'ld4p',
+  templateRepo: 'sinopia_sample_profiles',
+  templateBranch: 'test',
+  templatePath: 'profiles/v0.1.0',
+  templateFolder: 'bibframe',
+```
+
+#### Example:
+
+```shell
+$ COGNITO_ADMIN_USER=hoohah COGNITO_ADMIN_PASSWORD=foobar AWS_PROFILE=barfoo bin/starter
+```
 ### Authenticate to AWS Cognito
 
 You can use the `bin/authenticate` command-line tool to authenticate to an AWS Cognito instance. This command will create a new file called `.cognitoToken` which contains a [JSON Web Token](https://jwt.io/), which you can use to authorize HTTP requests to the Sinopia server (Trellis). How to authenticate:

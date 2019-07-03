@@ -25,6 +25,7 @@ module.exports = {
   userPoolAppClientId: process.env.COGNITO_CLIENT_ID || '2u6s7pqkc1grq1qs464fsi82at',
   cognitoTokenFile: '.cognitoToken',
   cognitoDomain: process.env.AWS_COGNITO_DOMAIN || defer(function () { return `cognito-idp.${this.awsRegion}.amazonaws.com` }), // no trailing slash
+  defaultProfileSchemaVersion: process.env.DEFAULT_PROFILE_SCHEMA_VERSION || '0.0.3',
   // WARNING: Config.groupsInSinopia in the sinopia_editor codebase *must* be kept in sync with this group list for now
   groups: {
     alberta: 'University of Alberta',
@@ -50,5 +51,10 @@ module.exports = {
     ucsd: 'University of California, San Diego',
     washington: 'University of Washington',
     yale: 'Yale University'
-  }
+  },
+  templateOrg: 'ld4p',
+  templateRepo: 'sinopia_sample_profiles',
+  templateBranch: 'master',
+  templatePath: 'profiles',
+  templateFolder: 'v0.1.0',
 }
