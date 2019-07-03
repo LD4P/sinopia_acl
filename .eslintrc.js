@@ -42,6 +42,8 @@ module.exports = {
         "security/detect-non-literal-regexp": "off",
         // this is a CLI tool; we DO want to send output to console
         "no-console": "off",
+        // the object injection is to a json file where the value is never assigned to a function.
+        "security/detect-object-injection": "off",
         // allow unused variables that begin with underscore
         "no-unused-vars": [
           "error",
