@@ -19,7 +19,7 @@ services:
       COGNITO_ADMIN_PASSWORD: "${COGNITO_ADMIN_PASSWORD}" # add to .env file (DO NOT CHECK IN)
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}" # add to .env file (DO NOT CHECK IN)
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}" # add to .env file (DO NOT CHECK IN)
-    command: dockerize -wait tcp://platform:8080 -timeout 3m bin/migrate
+    command: dockerize -wait tcp://platform:8080 -timeout 3m bin/migrate && bin/starter
     depends_on:
       - platform
   platform:
