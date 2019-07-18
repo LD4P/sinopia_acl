@@ -244,8 +244,10 @@ describe('WebAccessControl', () => {
       expect.assertions(16)
       const wac = new WebAccessControl('test', fs.readFileSync(`${fixture_dir}/testGroupAcl_2Control.ttl`).toString())
       const outputTtlFile = await wac.asTtl()
-      const myStore = N3.Store()
-      myStore.addQuads(N3.Parser().parse(outputTtlFile))
+      const myStore = new N3.Store()
+      const myParser = new N3.Parser()
+      const parseOutput = myParser.parse(outputTtlFile)
+      myStore.addQuads(parseOutput)
 
       expect(myStore.countQuads()).toEqual(wac.n3store.countQuads())
       expect(myStore.countQuads()).toBe(13)

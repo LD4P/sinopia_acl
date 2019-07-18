@@ -23,7 +23,7 @@ export class WebAccessControl {
 
   constructor(groupName='', wacData=null) {
     this.groupName = groupName
-    this.n3store = N3.Store() // the object containing the graph
+    this.n3store = new N3.Store() // the object containing the graph
     if (wacData != null && wacData.length > 5)
       this.parseWac(wacData)
   }
@@ -149,8 +149,8 @@ export class WebAccessControl {
 
   // expect wacData to be a string
   parseWac(wacData) {
-    const parser = N3.Parser()
-    this.n3store = N3.Store()
+    const parser = new N3.Parser()
+    this.n3store = new N3.Store()
     this.webidsWithControl = []
     this.webidsWithWrite = []
     if (wacData) {
