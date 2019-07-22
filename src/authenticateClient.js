@@ -17,7 +17,7 @@ export default class AuthenticateClient {
     this.userPoolId = this.userPoolIdFromConfig()
     this.appClientId = this.appClientIdFromConfig()
     this.cognitoTokenFile = config.get('cognitoTokenFile')
-    this.cognitoDomain = config.get('cognitoDomain')
+    this.cognitoIss = config.get('cognitoIss')
     this.awsRegion = config.get('awsRegion')
 
     if (!this.username || !this.password) {
@@ -55,7 +55,7 @@ export default class AuthenticateClient {
   async webId(cognitoUserName) {
     try {
       const userSub = await this.userSubFromCognitoPool(cognitoUserName)
-      return `https://${this.cognitoDomain}/${this.userPoolId}/${userSub}`
+      return `${this.cognitoIss}/${userSub}`
     } catch(err) {
       const errmsg = `ERROR: problem getting webid for ${cognitoUserName}: ${util.inspect(err)}`
       console.error(errmsg)

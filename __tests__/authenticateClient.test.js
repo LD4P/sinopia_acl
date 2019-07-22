@@ -181,11 +181,9 @@ describe('AuthenticateClient', () => {
     const desiredUser = username
 
     test('returns valid webId', async () => {
-      const webid = await client.webId(desiredUser)
-      const startsWithRegex = new RegExp(`^https://${client.cognitoDomain}/${client.userPoolId}/`)
-      expect(webid).toMatch(startsWithRegex)
-      const endsWithUuidRegex = new RegExp("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-      expect(webid).toMatch(endsWithUuidRegex)
+      const issPattern = `https://cognito-idp.${client.awsRegion}.amazonaws.com/${client.userPoolId}`
+      const uuidPattern = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+      expect(await client.webId(desiredUser)).toMatch(new RegExp(`^${issPattern}/${uuidPattern}$`))
     }, 10000)
 
     test.skip('throws error and console logs if problem', async() => {
