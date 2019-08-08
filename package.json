@@ -1,6 +1,6 @@
 {
   "name": "sinopia_acl",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Interact with WebACL data on Sinopia server",
   "bin": {
     "acl": "bin/acl",
