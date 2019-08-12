@@ -6,6 +6,7 @@ module.exports = {
   awsRegion: process.env.AWS_REGION || 'us-west-2',
   // usernames from the development Sinopia Cognito user pool (same names used in stage and prod Cogntio pools)
   adminUsers: [
+    'sinopia_acl_admin',
     'jgreben',
     'jpnelson',
     'michelle',
@@ -18,7 +19,7 @@ module.exports = {
     'amcollie'
   ],
   // admin username for getting webids given usernames;  explicit values here are from development Sinopia Cognito user pool
-  cognitoAdminUser: process.env.COGNITO_ADMIN_USER || 'sinopia-devs_client-tester',
+  cognitoAdminUser: process.env.COGNITO_ADMIN_USER || 'sinopia_acl_admin',
   cognitoAdminPassword: process.env.COGNITO_ADMIN_PASSWORD,  // this should NOT have a default value
   awsProfile: process.env.AWS_PROFILE || '',
   userPoolId: process.env.COGNITO_USER_POOL_ID || 'us-west-2_CGd9Wq136',
